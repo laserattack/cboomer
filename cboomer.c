@@ -124,7 +124,7 @@ void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f w
     }
 }
 
-GLuint compileShader(GLenum type, const char *source, const char *name) {
+GLuint compileShader(GLenum type, const char *source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
@@ -134,18 +134,15 @@ GLuint compileShader(GLenum type, const char *source, const char *name) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        fprintf(stderr, "------------------------------\n");
-        fprintf(stderr, "Error during shader compilation: %s. Log:\n", name);
-        fprintf(stderr, "%s\n", infoLog);
-        fprintf(stderr, "------------------------------\n");
+        fprintf(stderr, "Shader compilation error: %s\n", infoLog);
     }
     return shader;
 }
 
 GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
     GLuint program        = glCreateProgram();
-    GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, vertSource, "vertex shader");
-    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragSource, "fragment shader");
+    GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, vertSource);
+    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragSource);
 
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
@@ -156,7 +153,7 @@ GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, 512, NULL, infoLog);
-        fprintf(stderr, "%s\n", infoLog);
+        fprintf(stderr, "Program linking error: %s\n", infoLog);
     }
 
     glDeleteShader(vertexShader);
