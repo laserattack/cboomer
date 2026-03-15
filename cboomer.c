@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #define SCREENSHOT_IMPL
 #include "screenshot.h"
@@ -11,6 +12,8 @@
 #include <X11/keysym.h>
 #include <GL/glew.h>
 #include <GL/glx.h>
+
+#define INITIAL_FL_DELTA_RADIUS 250.0f
 
 // ================ SHADER SOURCES
 static const char *VERTEX_SHADER_SOURCE =
@@ -182,6 +185,13 @@ int main() {
 
     glXMakeCurrent(display, win, glc);
 
+    GLenum err = glewInit();
+    if (err != GLEW_OK) {
+        fprintf(stderr, "GLEW initialization failed: %s\n", glewGetErrorString(err));
+        return 1;
+    }
+    printf("GLEW initialized: %s\n", glewGetString(GLEW_VERSION));
+
     glViewport(0, 0, screen_width, screen_height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -204,7 +214,52 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // ================ KEEP FOCUS, HANDLE ESC, RENDER TEXTURE
+    // ================ CREATE SHADER PROGRAM
+    GLuint shaderProgram = createShaderProgram(VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+
+    // ================ CREATE VAO/VBO FOR RECTANGLE
+    GLuint vao, vbo, ebo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    glGenBuffers(1, &ebo);
+
+    float w = screenshot->image->width;
+    float h = screenshot->image->height;
+
+    float vertices[] = {
+        w, 0, 0.0f, 1.0f, 1.0f,
+        w, h, 0.0f, 1.0f, 0.0f,
+        0, h, 0.0f, 0.0f, 0.0f,
+        0, 0, 0.0f, 0.0f, 1.0f
+    };
+
+    unsigned int indices[] = { 0, 1, 3, 1, 2, 3 };
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // Uniform for texture
+    glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
+
+    // ================ FLASHLIGHT VARIABLES
+    int flashlightOn = 0;
+    float flShadow = 0.0f;
+    float flRadius = 200.0f;
+    float flDeltaRadius = 0.0f;
+    float cameraScale = 1.0f;
+    Vec2f cameraPos = {0, 0};
+
+    // ================ MAIN CYCLE: KEEP FOCUS, HANDLE ESC, RENDER TEXTURE
     XEvent event;
     int running = 1;
 
@@ -217,6 +272,12 @@ int main() {
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
+        // Smoothly interpolate flashlight radius with deceleration effect
+        if (fabs(flDeltaRadius) > 1.0f) {
+            flRadius = fmax(0.0f, flRadius + flDeltaRadius * dt);
+            flDeltaRadius -= flDeltaRadius * 10.0f * dt;
+        }
+
         while (XPending(display)) {
             XNextEvent(display, &event);
             switch (event.type) {
@@ -225,21 +286,59 @@ int main() {
                 if (key == XK_Escape) {
                     running = 0;
                 }
+                if (key == XK_2) {
+                    flashlightOn = !flashlightOn;
+                    if (flashlightOn) {
+                        flShadow = 0.8f;
+                    } else {
+                        flShadow = 0.0f;
+                    }
+                }
+                break;
+
+            case ButtonPress:
+                int ctrlPressed = (event.xbutton.state & ControlMask) != 0;
+
+                // flashlight radius update
+                if (event.xbutton.button == Button4) {
+                    if (ctrlPressed && flashlightOn) {
+                        flDeltaRadius -= INITIAL_FL_DELTA_RADIUS;
+                    }
+                }
+                else if (event.xbutton.button == Button5) {
+                    if (ctrlPressed && flashlightOn) {
+                        flDeltaRadius += INITIAL_FL_DELTA_RADIUS;
+                    }
+                }
                 break;
             }
         }
 
+        // Get cursor position
+        Window root_return, child_return;
+        int root_x, root_y, win_x, win_y;
+        unsigned int mask;
+        XQueryPointer(display, root, &root_return, &child_return,
+                      &root_x, &root_y, &win_x, &win_y, &mask);
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glUseProgram(shaderProgram);
 
-        glBegin(GL_QUADS);
-            glTexCoord2f(0.0f, 0.0f); glVertex2f(0, 0);
-            glTexCoord2f(1.0f, 0.0f); glVertex2f(screen_width, 0);
-            glTexCoord2f(1.0f, 1.0f); glVertex2f(screen_width, screen_height);
-            glTexCoord2f(0.0f, 1.0f); glVertex2f(0, screen_height);
-        glEnd();
+        // Set uniforms
+        glUniform2f(glGetUniformLocation(shaderProgram, "cameraPos"), cameraPos.x, cameraPos.y);
+        glUniform1f(glGetUniformLocation(shaderProgram, "cameraScale"), cameraScale);
+        glUniform2f(glGetUniformLocation(shaderProgram, "windowSize"), screen_width, screen_height);
+        glUniform2f(glGetUniformLocation(shaderProgram, "screenshotSize"),
+                    screenshot->image->width, screenshot->image->height);
+        glUniform2f(glGetUniformLocation(shaderProgram, "cursorPos"), root_x, root_y);
+        glUniform1f(glGetUniformLocation(shaderProgram, "flShadow"), flShadow);
+        glUniform1f(glGetUniformLocation(shaderProgram, "flRadius"), flRadius);
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindVertexArray(vao);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         glXSwapBuffers(display, win);
         glFinish();
@@ -249,6 +348,10 @@ int main() {
     XSync(display, False);
 
     // ================ CLEANUP
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
+    glDeleteProgram(shaderProgram);
     glDeleteTextures(1, &texture);
     glXMakeCurrent(display, None, NULL);
     glXDestroyContext(display, glc);
