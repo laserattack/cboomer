@@ -336,19 +336,9 @@ int main() {
     float flDeltaRadius = 0.0f;
 
     // ================ CAMERA VARIABLES
-    Camera camera = {
-        .position   = {0, 0},
-        .velocity   = {0, 0},
-        .scale      = 1.0f,
-        .deltaScale = 0.0f,
-        .scalePivot = {0, 0}
-    };
+    Camera camera = { .scale = 1.0f };
 
-    Mouse mouse = {
-        .curr = {0, 0},
-        .prev = {0, 0},
-        .drag = 0
-    };
+    Mouse mouse = {0};
 
     // ================ MAIN CYCLE: KEEP FOCUS, HANDLE ESC, RENDER TEXTURE
     XEvent event;
@@ -378,12 +368,7 @@ int main() {
                     flashlightOn = !flashlightOn;
                 }
                 if (key == XK_1) {
-                    camera.scale = 1.0f;
-                    camera.deltaScale = 0.0f;
-                    camera.position.x = 0;
-                    camera.position.y = 0;
-                    camera.velocity.x = 0;
-                    camera.velocity.y = 0;
+                    camera = (Camera){ .scale = 1.0f };
                 }
                 if (key == XK_equal || key == XK_plus) {
                     if (!flashlightOn) {
