@@ -6,10 +6,6 @@
 
 int main() {
     Display *display = XOpenDisplay(NULL);
-    if (!display) {
-        fprintf(stderr, "Cannot open display\n");
-        return 1;
-    }
     
     Window root = DefaultRootWindow(display);
     
