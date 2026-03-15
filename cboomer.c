@@ -14,10 +14,6 @@
 #include <GL/glew.h>
 #include <GL/glx.h>
 
-#define INITIAL_FL_DELTA_RADIUS 250.0f
-#define VELOCITY_THRESHOLD      15.0f
-#define MAX_SCALE               10.0f
-
 // ================ SHADER SOURCES
 static const char *VERTEX_SHADER_SOURCE =
     "#version 130\n"
@@ -77,6 +73,8 @@ typedef struct {
     float scrollSpeed;
     float dragFriction;
     float scaleFriction;
+    float initialFlDeltaRadius;
+    float velocityThreshold;
 } Config;
 
 void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
@@ -106,7 +104,7 @@ void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f w
         camera->deltaScale -= camera->deltaScale * dt * config.scaleFriction;
     }
 
-    if (!mouse.drag && vec2_length(camera->velocity) > VELOCITY_THRESHOLD) {
+    if (!mouse.drag && vec2_length(camera->velocity) > config.velocityThreshold) {
         camera->position = vec2_add(camera->position, vec2_mul(camera->velocity, dt));
         camera->velocity = vec2_sub(camera->velocity, vec2_mul(camera->velocity, dt * config.dragFriction));
     }
@@ -161,10 +159,12 @@ int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
 int main() {
     // ================ CONFIG
     Config config = {
-        .minScale      = 0.5f,
-        .scrollSpeed   = 1.5f,
-        .dragFriction  = 6.0f,
-        .scaleFriction = 4.0f
+        .minScale             = 0.5f,
+        .scrollSpeed          = 1.5f,
+        .dragFriction         = 6.0f,
+        .scaleFriction        = 4.0f,
+        .initialFlDeltaRadius = 250.0f,
+        .velocityThreshold    = 15.0f,
     };
 
     // ================ GET CURRENT DISPLAY
@@ -388,14 +388,14 @@ int main() {
                     camera.velocity   = (Vec2f){ .x = 0, .y = 0 };
                 } else if (event.xbutton.button == Button4) {
                     if (ctrlPressed && flashlightOn) {
-                        flDeltaRadius -= INITIAL_FL_DELTA_RADIUS;
+                        flDeltaRadius -= config.initialFlDeltaRadius;
                     } else {
                         camera.deltaScale += config.scrollSpeed;
                         camera.scalePivot  = mouse.curr;
                     }
                 } else if (event.xbutton.button == Button5) {
                     if (ctrlPressed && flashlightOn) {
-                        flDeltaRadius += INITIAL_FL_DELTA_RADIUS;
+                        flDeltaRadius += config.initialFlDeltaRadius;
                     } else {
                         camera.deltaScale -= config.scrollSpeed;
                         camera.scalePivot  = mouse.curr;
@@ -416,7 +416,7 @@ int main() {
         XQueryPointer(display, root, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask);
 
         mouse.curr = (Vec2f){ .x = win_x, .y = win_y };
-        
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
