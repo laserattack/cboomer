@@ -9,6 +9,21 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer ap
 - Configurable controls and behavior
 - Clean, modular C code with single-header libraries
 
+## Dependencies
+
+### Debian/Ubuntu
+
+```
+sudo apt-get install libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev
+```
+
+## Quick Start
+
+```
+make
+./cboomer
+```
+
 ## Default Controls
 
 | Control                         | Action                   |
