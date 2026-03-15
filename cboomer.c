@@ -166,7 +166,7 @@ GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
 int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
     char errorMessage[256];
     XGetErrorText(display, errorEvent->error_code, errorMessage, sizeof(errorMessage));
-    fprintf(stderr, "X ELEVEN ERROR: %s\n", errorMessage);
+    fprintf(stderr, "X11 Error: %s\n", errorMessage);
     return 0;
 }
 
