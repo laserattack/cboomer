@@ -5,7 +5,7 @@ TARGET = cboomer
 
 all: $(TARGET)
 
-$(TARGET): cboomer.c screenshot.h
+$(TARGET): cboomer.c screenshot.h la.h config.h
 	$(CC) $(CFLAGS) -o $@ cboomer.c $(LDFLAGS)
 
 clean:
