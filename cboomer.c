@@ -83,18 +83,24 @@ typedef struct {
 } Config;
 
 // la
-Vec2f vec2(float x, float y) { return (Vec2f){x, y}; }
-Vec2f vec2_add(Vec2f a, Vec2f b) { return vec2(a.x + b.x, a.y + b.y); }
-Vec2f vec2_sub(Vec2f a, Vec2f b) { return vec2(a.x - b.x, a.y - b.y); }
-Vec2f vec2_mul(Vec2f a, float s) { return vec2(a.x * s, a.y * s); }
-Vec2f vec2_div(Vec2f a, float s) { return vec2(a.x / s, a.y / s); }
-float vec2_length(Vec2f a) { return sqrtf(a.x * a.x + a.y * a.y); }
+Vec2f vec2(float x, float y)     { return (Vec2f){x, y};                }
+Vec2f vec2_add(Vec2f a, Vec2f b) { return vec2(a.x + b.x, a.y + b.y);   }
+Vec2f vec2_sub(Vec2f a, Vec2f b) { return vec2(a.x - b.x, a.y - b.y);   }
+Vec2f vec2_mul(Vec2f a, float s) { return vec2(a.x * s, a.y * s);       }
+Vec2f vec2_div(Vec2f a, float s) { return vec2(a.x / s, a.y / s);       }
+float vec2_length(Vec2f a)       { return sqrtf(a.x * a.x + a.y * a.y); }
 
+void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
+    *flShadow = flashlightOn ? fmin(*flShadow + 6.0f * dt, 0.8f) : fmax(*flShadow - 6.0f * dt, 0.0f);
+    if (fabs(*flDeltaRadius) > 1.0f) {
+        *flRadius = fmax(0.0f, *flRadius + *flDeltaRadius * dt);
+        *flDeltaRadius -= *flDeltaRadius * 10.0f * dt;
+    }
+}
+
+// worldPos = (screenPos - windowSize/2) / camera.scale + camera.position
 Vec2f world_camera(Camera camera, Vec2f screenPos, Vec2f windowSize) {
-    return (Vec2f) {
-        .x = (screenPos.x - windowSize.x/2) / camera.scale + camera.position.x,
-        .y = (screenPos.y - windowSize.y/2) / camera.scale + camera.position.y,
-    };
+    return vec2_add(vec2_div(vec2_sub(screenPos, vec2_mul(windowSize, 0.5f)), camera.scale), camera.position);
 }
 
 void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
@@ -319,16 +325,16 @@ int main() {
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 
     // ================ FLASHLIGHT VARIABLES
-    int flashlightOn = 0;
-    float flShadow = 0.0f;
-    float flRadius = 200.0f;
+    int   flashlightOn  = 0;
+    float flShadow      = 0.0f;
+    float flRadius      = 200.0f;
     float flDeltaRadius = 0.0f;
 
     // ================ CAMERA VARIABLES
     Camera camera = {
-        .position = {0, 0},
-        .velocity = {0, 0},
-        .scale = 1.0f,
+        .position   = {0, 0},
+        .velocity   = {0, 0},
+        .scale      = 1.0f,
         .deltaScale = 0.0f,
         .scalePivot = {0, 0}
     };
@@ -352,17 +358,7 @@ int main() {
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
-        if (fabs(flDeltaRadius) > 1.0f) {
-            flRadius = fmax(0.0f, flRadius + flDeltaRadius * dt);
-            flDeltaRadius -= flDeltaRadius * 10.0f * dt;
-        }
-
-        if (flashlightOn) {
-            flShadow = fmin(flShadow + 6.0f * dt, 0.8f);
-        } else {
-            flShadow = fmax(flShadow - 6.0f * dt, 0.0f);
-        }
-
+        update_flashlight(flashlightOn, &flShadow, &flRadius, &flDeltaRadius, dt);
         update_camera(&camera, config, dt, mouse, vec2(screen_width, screen_height));
 
         while (XPending(display)) {
@@ -417,8 +413,8 @@ int main() {
                 int ctrlPressed = (event.xbutton.state & ControlMask) != 0;
 
                 if (event.xbutton.button == Button1) {
-                    mouse.prev = mouse.curr;
-                    mouse.drag = 1;
+                    mouse.prev        = mouse.curr;
+                    mouse.drag        = 1;
                     camera.velocity.x = 0;
                     camera.velocity.y = 0;
                 }
