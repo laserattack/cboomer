@@ -361,15 +361,9 @@ int main() {
             switch (event.type) {
             case KeyPress:
                 KeySym key = XLookupKeysym(&event.xkey, 0);
-                if (key == XK_Escape) {
-                    running = 0;
-                }
-                if (key == XK_2) {
-                    flashlightOn = !flashlightOn;
-                }
-                if (key == XK_1) {
-                    camera = (Camera){ .scale = 1.0f };
-                }
+                if (key == XK_Escape) { running = 0; }
+                if (key == XK_2) { flashlightOn = !flashlightOn; }
+                if (key == XK_1) { camera = (Camera){ .scale = 1.0f }; }
                 if (key == XK_equal || key == XK_plus) {
                     if (!flashlightOn) {
                         camera.deltaScale += config.scrollSpeed;
@@ -385,8 +379,7 @@ int main() {
                 break;
 
             case MotionNotify:
-                mouse.curr.x = event.xmotion.x;
-                mouse.curr.y = event.xmotion.y;
+                mouse.curr = (Vec2f){ .x = event.xmotion.x, .y = event.xmotion.y };
 
                 if (mouse.drag) {
                     Vec2f worldPrev = world_camera(camera, mouse.prev, vec2(screen_width, screen_height));
@@ -404,8 +397,7 @@ int main() {
                 if (event.xbutton.button == Button1) {
                     mouse.prev        = mouse.curr;
                     mouse.drag        = 1;
-                    camera.velocity.x = 0;
-                    camera.velocity.y = 0;
+                    camera.velocity   = (Vec2f){ .x = 0, .y = 0 };
                 }
                 else if (event.xbutton.button == Button4) {
                     if (ctrlPressed && flashlightOn) {
@@ -426,9 +418,7 @@ int main() {
                 break;
 
             case ButtonRelease:
-                if (event.xbutton.button == Button1) {
-                    mouse.drag = 0;
-                }
+                if (event.xbutton.button == Button1) mouse.drag = 0;
                 break;
             }
         }
@@ -439,9 +429,9 @@ int main() {
         unsigned int mask;
         XQueryPointer(display, root, &root_return, &child_return,
                       &root_x, &root_y, &win_x, &win_y, &mask);
-        mouse.curr.x = win_x;
-        mouse.curr.y = win_y;
 
+        mouse.curr = (Vec2f){ .x = win_x, .y = win_y };
+        
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
