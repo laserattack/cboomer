@@ -11,10 +11,14 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer ap
 
 ## Dependencies
 
-### Debian/Ubuntu
+- X11 development libraries (libX11, libXext, libXrandr)
+- OpenGL development libraries (libGL, libGLX)
+- GLEW (OpenGL Extension Wrangler)
+
+Example for Void linux:
 
 ```
-sudo apt-get install libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev
+sudo xbps-install -S libglvnd-devel libX11-devel libXrandr-devel glew-devel
 ```
 
 ## Quick Start
