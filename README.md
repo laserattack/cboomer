@@ -1,6 +1,6 @@
 # CBoomer
 
-A C port of Boomer by Tsoding - a zoomer application for Linux that lets you explore your screen with smooth zooming and a flashlight effect
+A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer application for Linux that lets you explore your screen with smooth zooming and a flashlight effect
 
 ## Features
 
