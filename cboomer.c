@@ -82,36 +82,19 @@ typedef struct {
     float scaleFriction;
 } Config;
 
-Vec2f vec2(float x, float y) {
-    Vec2f v = {x, y};
-    return v;
-}
-
-Vec2f vec2_add(Vec2f a, Vec2f b) {
-    return vec2(a.x + b.x, a.y + b.y);
-}
-
-Vec2f vec2_sub(Vec2f a, Vec2f b) {
-    return vec2(a.x - b.x, a.y - b.y);
-}
-
-Vec2f vec2_mul(Vec2f a, float s) {
-    return vec2(a.x * s, a.y * s);
-}
-
-Vec2f vec2_div(Vec2f a, float s) {
-    return vec2(a.x / s, a.y / s);
-}
-
-float vec2_length(Vec2f a) {
-    return sqrtf(a.x * a.x + a.y * a.y);
-}
+// la
+Vec2f vec2(float x, float y) { return (Vec2f){x, y}; }
+Vec2f vec2_add(Vec2f a, Vec2f b) { return vec2(a.x + b.x, a.y + b.y); }
+Vec2f vec2_sub(Vec2f a, Vec2f b) { return vec2(a.x - b.x, a.y - b.y); }
+Vec2f vec2_mul(Vec2f a, float s) { return vec2(a.x * s, a.y * s); }
+Vec2f vec2_div(Vec2f a, float s) { return vec2(a.x / s, a.y / s); }
+float vec2_length(Vec2f a) { return sqrtf(a.x * a.x + a.y * a.y); }
 
 Vec2f world_camera(Camera camera, Vec2f screenPos, Vec2f windowSize) {
-    Vec2f result;
-    result.x = (screenPos.x - windowSize.x/2) / camera.scale + camera.position.x;
-    result.y = (screenPos.y - windowSize.y/2) / camera.scale + camera.position.y;
-    return result;
+    return (Vec2f) {
+        .x = (screenPos.x - windowSize.x/2) / camera.scale + camera.position.x,
+        .y = (screenPos.y - windowSize.y/2) / camera.scale + camera.position.y,
+    };
 }
 
 void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
@@ -132,7 +115,6 @@ void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f w
 
     if (!mouse.drag && vec2_length(camera->velocity) > VELOCITY_THRESHOLD) {
         camera->position = vec2_add(camera->position, vec2_mul(camera->velocity, dt));
-
         camera->velocity = vec2_sub(camera->velocity, vec2_mul(camera->velocity, dt * config.dragFriction));
     }
 }
@@ -443,7 +425,7 @@ int main() {
                 else if (event.xbutton.button == Button4) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius -= INITIAL_FL_DELTA_RADIUS;
-                    } else if (!flashlightOn) {
+                    } else {
                         camera.deltaScale += config.scrollSpeed;
                         camera.scalePivot = mouse.curr;
                     }
@@ -451,7 +433,7 @@ int main() {
                 else if (event.xbutton.button == Button5) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius += INITIAL_FL_DELTA_RADIUS;
-                    } else if (!flashlightOn) {
+                    } else {
                         camera.deltaScale -= config.scrollSpeed;
                         camera.scalePivot = mouse.curr;
                     }
