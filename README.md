@@ -1,5 +1,7 @@
 # CBoomer
 
+![](./demo.gif)
+
 A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer application for Linux. This port focuses on the core functionality (screenshot viewing, zoom, pan, flashlight) and does not yet implement live window tracking (honestly, I've never used it)
 
 ## Features
