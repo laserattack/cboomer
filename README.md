@@ -9,7 +9,7 @@ A C port of Boomer by Tsoding - a zoomer application for Linux that lets you exp
 - Configurable controls and behavior
 - Clean, modular C code with single-header libraries
 
-## Controls
+## Default Controls
 
 | Control                         | Action                   |
 |---------------------------------|--------------------------|
@@ -21,6 +21,8 @@ A C port of Boomer by Tsoding - a zoomer application for Linux that lets you exp
 | Drag with left mouse            | Pan the image            |
 | Scroll wheel                    | Zoom in/out              |
 | <kbd>Ctrl</kbd> + Scroll wheel  | Change flashlight radius |
+
+You can modify controls in `config.h`
 
 ## Project Structure
 
