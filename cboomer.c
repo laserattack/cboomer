@@ -303,17 +303,22 @@ int main() {
     // Uniform for texture
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 
-    // ================ FLASHLIGHT VARIABLES
+    // ================ FLASHLIGHT BASE VARIABLES
     int   flashlightOn  = 0;
     float flShadow      = 0.0f;
     float flRadius      = 200.0f;
     float flDeltaRadius = 0.0f;
 
-    // ================ CAMERA VARIABLES
+    // ================ PREPARING THE CURSOR AND CAMERA
     Camera camera = { .scale = 1.0f };
-
     Mouse mouse = {0};
-
+    // Get cursor position
+    Window root_return, child_return;
+    int root_x, root_y, win_x, win_y;
+    unsigned int mask;
+    XQueryPointer(display, root, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask);
+    mouse.curr = (Vec2f){ .x = win_x, .y = win_y };
+    
     // ================ MAIN CYCLE: KEEP FOCUS, HANDLE ESC, RENDER TEXTURE
     XEvent event;
     int running = 1;
@@ -323,7 +328,7 @@ int main() {
     XGetInputFocus(display, &originWindow, &revertToReturn);
 
     float dt = 1.0f / rate;
-
+    
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
@@ -394,14 +399,6 @@ int main() {
                 break;
             }
         }
-
-        // Get cursor position
-        Window root_return, child_return;
-        int root_x, root_y, win_x, win_y;
-        unsigned int mask;
-        XQueryPointer(display, root, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask);
-
-        mouse.curr = (Vec2f){ .x = win_x, .y = win_y };
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
