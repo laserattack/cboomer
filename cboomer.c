@@ -341,13 +341,13 @@ int main() {
                 if (key == XK_equal || key == XK_plus) {
                     if (!flashlightOn) {
                         camera.deltaScale += config.scrollSpeed;
-                        camera.scalePivot = mouse.curr;
+                        camera.scalePivot  = mouse.curr;
                     }
                 }
                 if (key == XK_minus) {
                     if (!flashlightOn) {
                         camera.deltaScale -= config.scrollSpeed;
-                        camera.scalePivot = mouse.curr;
+                        camera.scalePivot  = mouse.curr;
                     }
                 }
                 break;
