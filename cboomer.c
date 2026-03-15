@@ -14,6 +14,8 @@
 #include <GL/glx.h>
 
 #define INITIAL_FL_DELTA_RADIUS 250.0f
+#define VELOCITY_THRESHOLD 15.0f
+#define MAX_SCALE 10.0f
 
 // ================ SHADER SOURCES
 static const char *VERTEX_SHADER_SOURCE =
@@ -55,10 +57,85 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "        length(cursor - gl_FragCoord) < (flRadius * cameraScale) ? 0.0 : flShadow);\n"
     "}\n";
 
-
 typedef struct {
     float x, y;
 } Vec2f;
+
+typedef struct {
+    Vec2f position;
+    Vec2f velocity;
+    float scale;
+    float deltaScale;
+    Vec2f scalePivot;
+} Camera;
+
+typedef struct {
+    Vec2f curr;
+    Vec2f prev;
+    int drag;
+} Mouse;
+
+typedef struct {
+    float minScale;
+    float scrollSpeed;
+    float dragFriction;
+    float scaleFriction;
+} Config;
+
+Vec2f vec2(float x, float y) {
+    Vec2f v = {x, y};
+    return v;
+}
+
+Vec2f vec2_add(Vec2f a, Vec2f b) {
+    return vec2(a.x + b.x, a.y + b.y);
+}
+
+Vec2f vec2_sub(Vec2f a, Vec2f b) {
+    return vec2(a.x - b.x, a.y - b.y);
+}
+
+Vec2f vec2_mul(Vec2f a, float s) {
+    return vec2(a.x * s, a.y * s);
+}
+
+Vec2f vec2_div(Vec2f a, float s) {
+    return vec2(a.x / s, a.y / s);
+}
+
+float vec2_length(Vec2f a) {
+    return sqrtf(a.x * a.x + a.y * a.y);
+}
+
+Vec2f world_camera(Camera camera, Vec2f screenPos, Vec2f windowSize) {
+    Vec2f result;
+    result.x = (screenPos.x - windowSize.x/2) / camera.scale + camera.position.x;
+    result.y = (screenPos.y - windowSize.y/2) / camera.scale + camera.position.y;
+    return result;
+}
+
+void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
+    if (fabs(camera->deltaScale) > 0.5f) {
+        Vec2f p0 = vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f));
+        p0 = vec2_div(p0, camera->scale);
+
+        camera->scale = camera->scale + camera->deltaScale * dt;
+        if (camera->scale < config.minScale) camera->scale = config.minScale;
+
+        Vec2f p1 = vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f));
+        p1 = vec2_div(p1, camera->scale);
+
+        camera->position = vec2_add(camera->position, vec2_sub(p0, p1));
+
+        camera->deltaScale -= camera->deltaScale * dt * config.scaleFriction;
+    }
+
+    if (!mouse.drag && vec2_length(camera->velocity) > VELOCITY_THRESHOLD) {
+        camera->position = vec2_add(camera->position, vec2_mul(camera->velocity, dt));
+
+        camera->velocity = vec2_sub(camera->velocity, vec2_mul(camera->velocity, dt * config.dragFriction));
+    }
+}
 
 GLuint compileShader(GLenum type, const char *source, const char *name) {
     GLuint shader = glCreateShader(type);
@@ -105,6 +182,14 @@ GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
 }
 
 int main() {
+    // ================ CONFIG
+    Config config = {
+        .minScale = 0.5f,
+        .scrollSpeed = 1.5f,
+        .dragFriction = 6.0f,
+        .scaleFriction = 4.0f
+    };
+
     // ================ GET CURRENT DISPLAY
     Display *display = XOpenDisplay(NULL);
     if (!display) {
@@ -256,8 +341,21 @@ int main() {
     float flShadow = 0.0f;
     float flRadius = 200.0f;
     float flDeltaRadius = 0.0f;
-    float cameraScale = 1.0f;
-    Vec2f cameraPos = {0, 0};
+
+    // ================ CAMERA VARIABLES
+    Camera camera = {
+        .position = {0, 0},
+        .velocity = {0, 0},
+        .scale = 1.0f,
+        .deltaScale = 0.0f,
+        .scalePivot = {0, 0}
+    };
+
+    Mouse mouse = {
+        .curr = {0, 0},
+        .prev = {0, 0},
+        .drag = 0
+    };
 
     // ================ MAIN CYCLE: KEEP FOCUS, HANDLE ESC, RENDER TEXTURE
     XEvent event;
@@ -272,11 +370,18 @@ int main() {
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
-        // Smoothly interpolate flashlight radius with deceleration effect
         if (fabs(flDeltaRadius) > 1.0f) {
             flRadius = fmax(0.0f, flRadius + flDeltaRadius * dt);
             flDeltaRadius -= flDeltaRadius * 10.0f * dt;
         }
+
+        if (flashlightOn) {
+            flShadow = fmin(flShadow + 6.0f * dt, 0.8f);
+        } else {
+            flShadow = fmax(flShadow - 6.0f * dt, 0.0f);
+        }
+
+        update_camera(&camera, config, dt, mouse, vec2(screen_width, screen_height));
 
         while (XPending(display)) {
             XNextEvent(display, &event);
@@ -288,27 +393,74 @@ int main() {
                 }
                 if (key == XK_2) {
                     flashlightOn = !flashlightOn;
-                    if (flashlightOn) {
-                        flShadow = 0.8f;
-                    } else {
-                        flShadow = 0.0f;
+                }
+                if (key == XK_1) {
+                    camera.scale = 1.0f;
+                    camera.deltaScale = 0.0f;
+                    camera.position.x = 0;
+                    camera.position.y = 0;
+                    camera.velocity.x = 0;
+                    camera.velocity.y = 0;
+                }
+                if (key == XK_equal || key == XK_plus) {
+                    if (!flashlightOn) {
+                        camera.deltaScale += config.scrollSpeed;
+                        camera.scalePivot = mouse.curr;
                     }
                 }
+                if (key == XK_minus) {
+                    if (!flashlightOn) {
+                        camera.deltaScale -= config.scrollSpeed;
+                        camera.scalePivot = mouse.curr;
+                    }
+                }
+                break;
+
+            case MotionNotify:
+                mouse.curr.x = event.xmotion.x;
+                mouse.curr.y = event.xmotion.y;
+
+                if (mouse.drag) {
+                    Vec2f worldPrev = world_camera(camera, mouse.prev, vec2(screen_width, screen_height));
+                    Vec2f worldCurr = world_camera(camera, mouse.curr, vec2(screen_width, screen_height));
+
+                    camera.position = vec2_add(camera.position, vec2_sub(worldPrev, worldCurr));
+                    camera.velocity = vec2_mul(vec2_sub(worldPrev, worldCurr), rate);
+                }
+
+                mouse.prev = mouse.curr;
                 break;
 
             case ButtonPress:
                 int ctrlPressed = (event.xbutton.state & ControlMask) != 0;
 
-                // flashlight radius update
-                if (event.xbutton.button == Button4) {
+                if (event.xbutton.button == Button1) {
+                    mouse.prev = mouse.curr;
+                    mouse.drag = 1;
+                    camera.velocity.x = 0;
+                    camera.velocity.y = 0;
+                }
+                else if (event.xbutton.button == Button4) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius -= INITIAL_FL_DELTA_RADIUS;
+                    } else if (!flashlightOn) {
+                        camera.deltaScale += config.scrollSpeed;
+                        camera.scalePivot = mouse.curr;
                     }
                 }
                 else if (event.xbutton.button == Button5) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius += INITIAL_FL_DELTA_RADIUS;
+                    } else if (!flashlightOn) {
+                        camera.deltaScale -= config.scrollSpeed;
+                        camera.scalePivot = mouse.curr;
                     }
+                }
+                break;
+
+            case ButtonRelease:
+                if (event.xbutton.button == Button1) {
+                    mouse.drag = 0;
                 }
                 break;
             }
@@ -320,6 +472,8 @@ int main() {
         unsigned int mask;
         XQueryPointer(display, root, &root_return, &child_return,
                       &root_x, &root_y, &win_x, &win_y, &mask);
+        mouse.curr.x = win_x;
+        mouse.curr.y = win_y;
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -327,12 +481,12 @@ int main() {
         glUseProgram(shaderProgram);
 
         // Set uniforms
-        glUniform2f(glGetUniformLocation(shaderProgram, "cameraPos"), cameraPos.x, cameraPos.y);
-        glUniform1f(glGetUniformLocation(shaderProgram, "cameraScale"), cameraScale);
+        glUniform2f(glGetUniformLocation(shaderProgram, "cameraPos"), camera.position.x, camera.position.y);
+        glUniform1f(glGetUniformLocation(shaderProgram, "cameraScale"), camera.scale);
         glUniform2f(glGetUniformLocation(shaderProgram, "windowSize"), screen_width, screen_height);
         glUniform2f(glGetUniformLocation(shaderProgram, "screenshotSize"),
                     screenshot->image->width, screenshot->image->height);
-        glUniform2f(glGetUniformLocation(shaderProgram, "cursorPos"), root_x, root_y);
+        glUniform2f(glGetUniformLocation(shaderProgram, "cursorPos"), mouse.curr.x, mouse.curr.y);
         glUniform1f(glGetUniformLocation(shaderProgram, "flShadow"), flShadow);
         glUniform1f(glGetUniformLocation(shaderProgram, "flRadius"), flRadius);
 
