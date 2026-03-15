@@ -12,7 +12,6 @@
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/keysym.h>
 #include <GL/glew.h>
 #include <GL/glx.h>
 
@@ -335,16 +334,16 @@ int main() {
             switch (event.type) {
             case KeyPress:
                 KeySym key = XLookupKeysym(&event.xkey, 0);
-                if (key == XK_Escape) { running = 0;                        }
-                if (key == XK_2)      { flashlightOn = !flashlightOn;       }
-                if (key == XK_1)      { camera = (Camera){ .scale = 1.0f }; }
-                if (key == XK_equal || key == XK_plus) {
+                if (key == config.keyEscape)     { running = 0;                        }
+                if (key == config.keyFlashlight) { flashlightOn = !flashlightOn;       }
+                if (key == config.keyReset)      { camera = (Camera){ .scale = 1.0f }; }
+                if (key == config.keyZoomIn || key == config.keyZoomInAlt) {
                     if (!flashlightOn) {
                         camera.deltaScale += config.scrollSpeed;
                         camera.scalePivot  = mouse.curr;
                     }
                 }
-                if (key == XK_minus) {
+                if (key == config.keyZoomOut) {
                     if (!flashlightOn) {
                         camera.deltaScale -= config.scrollSpeed;
                         camera.scalePivot  = mouse.curr;
@@ -366,20 +365,20 @@ int main() {
                 break;
 
             case ButtonPress:
-                int ctrlPressed = (event.xbutton.state & ControlMask) != 0;
+                int ctrlPressed = (event.xbutton.state & config.modifierFlashlight) != 0;
 
-                if (event.xbutton.button == Button1) {
+                if (event.xbutton.button == config.buttonDrag) {
                     mouse.prev        = mouse.curr;
                     mouse.drag        = 1;
                     camera.velocity   = (Vec2f){ .x = 0, .y = 0 };
-                } else if (event.xbutton.button == Button4) {
+                } else if (event.xbutton.button == config.buttonZoomIn) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius -= config.initialFlDeltaRadius;
                     } else {
                         camera.deltaScale += config.scrollSpeed;
                         camera.scalePivot  = mouse.curr;
                     }
-                } else if (event.xbutton.button == Button5) {
+                } else if (event.xbutton.button == config.buttonZoomOut) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius += config.initialFlDeltaRadius;
                     } else {
@@ -390,7 +389,7 @@ int main() {
                 break;
 
             case ButtonRelease:
-                if (event.xbutton.button == Button1) mouse.drag = 0;
+                if (event.xbutton.button == config.buttonDrag) mouse.drag = 0;
                 break;
             }
         }
