@@ -5,6 +5,7 @@
 #define SCREENSHOT_IMPL
 #include "screenshot.h"
 
+#include <X11/extensions/Xrandr.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
@@ -21,7 +22,7 @@ int main() {
         fprintf(stderr, "Failed to open display\n");
         return 1;
     }
-
+    
     // ================ GET WINDOW PARAMETERS
     Window root = DefaultRootWindow(display);
     XWindowAttributes root_attrs;
@@ -30,6 +31,11 @@ int main() {
     int screen_height = root_attrs.height;
     printf("Screen size: %dx%d\n", screen_width, screen_height);
 
+    XRRScreenConfiguration *screenConfig = XRRGetScreenInfo(display, root);
+    int rate = XRRConfigCurrentRate(screenConfig);
+    XRRFreeScreenConfigInfo(screenConfig);
+    printf("Screen rate: %d Hz\n", rate);
+    
     // ================ CHECK GLX VERSION
     int glxMajor, glxMinor;
     if (!glXQueryVersion(display, &glxMajor, &glxMinor) ||
@@ -120,6 +126,8 @@ int main() {
     int revertToReturn;
     XGetInputFocus(display, &originWindow, &revertToReturn);
 
+    float dt = 1.0f / rate;
+    
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
@@ -148,7 +156,7 @@ int main() {
         glEnd();
 
         glXSwapBuffers(display, win);
-        usleep(16667);  // ~60 FPS
+        glFinish();
     }
 
     XSetInputFocus(display, originWindow, RevertToParent, CurrentTime);
