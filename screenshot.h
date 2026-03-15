@@ -1,17 +1,26 @@
-#include <stdlib.h>
-#include <stdio.h>
+#ifndef SCREENSHOT_H
+#define SCREENSHOT_H
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XShm.h>
-#include <sys/shm.h>
 
 typedef struct {
     XImage *image;
     XShmSegmentInfo *shminfo;
 } Screenshot;
 
-Screenshot* newScreenshot(Display *display, Window window) {
+Screenshot *newScreenshot(Display *display, Window window);
+void destroyScreenshot(Display *display, Screenshot *screenshot);
+void saveToPPM(XImage *image, const char *filePath);
+
+
+#ifdef SCREENSHOT_IMPL
+
+#include <stdlib.h>
+#include <sys/shm.h>
+
+Screenshot *newScreenshot(Display *display, Window window) {
     Screenshot *result = malloc(sizeof(Screenshot));
 
     XWindowAttributes attributes;
@@ -82,27 +91,34 @@ void saveToPPM(XImage *image, const char *filePath) {
     fclose(f);
 }
 
-int main() {
-    Display *display = XOpenDisplay(NULL);
-    if (!display) {
-        fprintf(stderr, "Cannot open display\n");
-        return 1;
-    }
-    
-    Window root = DefaultRootWindow(display);
-    
-    Screenshot *screenshot = newScreenshot(display, root);
-    if (screenshot) {
-        printf("Screenshot created: %dx%d\n",
-        screenshot->image->width, screenshot->image->height);
+// usage example
 
-        saveToPPM(screenshot->image, "screenshot.ppm");
-        
-        destroyScreenshot(display, screenshot);
-    } else {
-        fprintf(stderr, "Failed to create screenshot\n");
-    }
+// int main() {
+//     Display *display = XOpenDisplay(NULL);
+//     if (!display) {
+//         fprintf(stderr, "Cannot open display\n");
+//         return 1;
+//     }
     
-    XCloseDisplay(display);
-    return 0;
-}
+//     Window root = DefaultRootWindow(display);
+    
+//     Screenshot *screenshot = newScreenshot(display, root);
+//     if (screenshot) {
+//         printf("Screenshot created: %dx%d\n",
+//         screenshot->image->width, screenshot->image->height);
+
+//         saveToPPM(screenshot->image, "screenshot.ppm");
+        
+//         destroyScreenshot(display, screenshot);
+//     } else {
+//         fprintf(stderr, "Failed to create screenshot\n");
+//     }
+    
+//     XCloseDisplay(display);
+//     return 0;
+// }
+
+
+#endif // SCREENSHOT_IMPL
+
+#endif // SCREENSHOT_H

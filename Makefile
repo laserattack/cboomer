@@ -1,13 +1,14 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -O2
 LDFLAGS = -lX11 -lXext
+TARGET = cboomer
 
-all: screenshot
+all: $(TARGET)
 
-screenshot: screenshot.c
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+$(TARGET): cboomer.c screenshot.h
+	$(CC) $(CFLAGS) -o $@ cboomer.c $(LDFLAGS)
 
 clean:
-	rm -f screenshot
+	rm -f $(TARGET)
 
 .PHONY: all clean
