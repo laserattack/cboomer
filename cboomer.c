@@ -361,9 +361,9 @@ int main() {
             switch (event.type) {
             case KeyPress:
                 KeySym key = XLookupKeysym(&event.xkey, 0);
-                if (key == XK_Escape) { running = 0; }
-                if (key == XK_2) { flashlightOn = !flashlightOn; }
-                if (key == XK_1) { camera = (Camera){ .scale = 1.0f }; }
+                if (key == XK_Escape) { running = 0;                        }
+                if (key == XK_2)      { flashlightOn = !flashlightOn;       }
+                if (key == XK_1)      { camera = (Camera){ .scale = 1.0f }; }
                 if (key == XK_equal || key == XK_plus) {
                     if (!flashlightOn) {
                         camera.deltaScale += config.scrollSpeed;
@@ -398,16 +398,14 @@ int main() {
                     mouse.prev        = mouse.curr;
                     mouse.drag        = 1;
                     camera.velocity   = (Vec2f){ .x = 0, .y = 0 };
-                }
-                else if (event.xbutton.button == Button4) {
+                } else if (event.xbutton.button == Button4) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius -= INITIAL_FL_DELTA_RADIUS;
                     } else {
                         camera.deltaScale += config.scrollSpeed;
                         camera.scalePivot  = mouse.curr;
                     }
-                }
-                else if (event.xbutton.button == Button5) {
+                } else if (event.xbutton.button == Button5) {
                     if (ctrlPressed && flashlightOn) {
                         flDeltaRadius += INITIAL_FL_DELTA_RADIUS;
                     } else {
