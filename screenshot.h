@@ -35,14 +35,14 @@
 #include <X11/extensions/XShm.h>
 
 typedef struct {
-    XImage *image;
+    XImage          *image;
     XShmSegmentInfo *shminfo;
 } Screenshot;
 
-Screenshot *newScreenshot(Display *display, Window window);
-void destroyScreenshot(Display *display, Screenshot *screenshot);
-void refreshScreenshot(Display *display, Screenshot **screenshot, Window window);
-void saveToPPM(XImage *image, const char *filePath);
+Screenshot  *newScreenshot(Display *display, Window window);
+void        destroyScreenshot(Display *display, Screenshot *screenshot);
+void        refreshScreenshot(Display *display, Screenshot **screenshot, Window window);
+void        saveToPPM(XImage *image, const char *filePath);
 
 // TODO(20260315T135112): Add XShm support detection and fallback to non-shared memory implementation
 // Current implementation requires XShm. For systems without XShm support,
@@ -82,8 +82,8 @@ Screenshot *newScreenshot(Display *display, Window window) {
         IPC_CREAT | 0777
     );
 
-    result->shminfo->shmaddr = (char*)shmat(result->shminfo->shmid, 0, 0);
-    result->image->data = result->shminfo->shmaddr;
+    result->shminfo->shmaddr  = (char*)shmat(result->shminfo->shmid, 0, 0);
+    result->image->data       = result->shminfo->shmaddr;
     result->shminfo->readOnly = False;
 
     XShmAttach(display, result->shminfo);
@@ -111,7 +111,7 @@ void refreshScreenshot(Display *display, Screenshot **screenshot, Window window)
     XGetWindowAttributes(display, window, &attributes);
 
     if (XShmGetImage(display, window, (*screenshot)->image, 0, 0, AllPlanes) == 0 ||
-        attributes.width != (*screenshot)->image->width ||
+        attributes.width  != (*screenshot)->image->width ||
         attributes.height != (*screenshot)->image->height) {
 
         destroyScreenshot(display, *screenshot);

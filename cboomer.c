@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <math.h>
 
 #define SCREENSHOT_IMPL
 #include "screenshot.h"
+#define LA_IMPL
+#include "la.h"
 
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xlib.h>
@@ -58,10 +59,6 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "}\n";
 
 typedef struct {
-    float x, y;
-} Vec2f;
-
-typedef struct {
     Vec2f position;
     Vec2f velocity;
     float scale;
@@ -81,14 +78,6 @@ typedef struct {
     float dragFriction;
     float scaleFriction;
 } Config;
-
-// la
-Vec2f vec2(float x, float y)     { return (Vec2f){x, y};                }
-Vec2f vec2_add(Vec2f a, Vec2f b) { return vec2(a.x + b.x, a.y + b.y);   }
-Vec2f vec2_sub(Vec2f a, Vec2f b) { return vec2(a.x - b.x, a.y - b.y);   }
-Vec2f vec2_mul(Vec2f a, float s) { return vec2(a.x * s, a.y * s);       }
-Vec2f vec2_div(Vec2f a, float s) { return vec2(a.x / s, a.y / s);       }
-float vec2_length(Vec2f a)       { return sqrtf(a.x * a.x + a.y * a.y); }
 
 void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
     *flShadow = flashlightOn ? fmin(*flShadow + 6.0f * dt, 0.8f) : fmax(*flShadow - 6.0f * dt, 0.0f);
