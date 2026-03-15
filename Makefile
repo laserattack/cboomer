@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -O2
-LDFLAGS = -lX11 -lXext -lGL -lXrandr
+LDFLAGS = -lX11 -lXext -lGL -lXrandr -lGLEW
 TARGET = cboomer
 
 all: $(TARGET)
