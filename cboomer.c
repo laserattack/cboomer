@@ -148,6 +148,7 @@ static int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
     return 0;
 }
 
+// TODO(20260315T234235): -h/--help flag
 int main() {
     // ================ CONFIG
     Config config = defaultConfig;
