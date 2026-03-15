@@ -427,8 +427,7 @@ int main() {
         Window root_return, child_return;
         int root_x, root_y, win_x, win_y;
         unsigned int mask;
-        XQueryPointer(display, root, &root_return, &child_return,
-                      &root_x, &root_y, &win_x, &win_y, &mask);
+        XQueryPointer(display, root, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask);
 
         mouse.curr = (Vec2f){ .x = win_x, .y = win_y };
         
