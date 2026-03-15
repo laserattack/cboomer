@@ -169,6 +169,13 @@ GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
     return program;
 }
 
+int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
+    char errorMessage[256];
+    XGetErrorText(display, errorEvent->error_code, errorMessage, sizeof(errorMessage));
+    fprintf(stderr, "X ELEVEN ERROR: %s\n", errorMessage);
+    return 0;
+}
+
 int main() {
     // ================ CONFIG
     Config config = {
@@ -185,6 +192,9 @@ int main() {
         return 1;
     }
 
+    // ================ SETUP X11 ERROR HANDLER
+    XSetErrorHandler(xElevenErrorHandler);
+    
     // ================ GET WINDOW PARAMETERS
     Window root = DefaultRootWindow(display);
     XWindowAttributes root_attrs;
