@@ -46,6 +46,6 @@ You can modify controls in `config.h`
 ## Project Structure
 
 - cboomer.c - Main application logic
-- config.h - Configuration (single-header)
-- la.h - Linear algebra (single-header)
-- screenshot.h - Screenshot capture (single-header)
+- config.h - Configuration
+- la.h - Linear algebra
+- screenshot.h - Screenshot capture
