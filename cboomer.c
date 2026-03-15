@@ -6,6 +6,8 @@
 #include "screenshot.h"
 #define LA_IMPL
 #include "la.h"
+#define CONFIG_IMPL
+#include "config.h"
 
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xlib.h>
@@ -67,15 +69,6 @@ typedef struct {
     Vec2f prev;
     int   drag;
 } Mouse;
-
-typedef struct {
-    float minScale;
-    float scrollSpeed;
-    float dragFriction;
-    float scaleFriction;
-    float initialFlDeltaRadius;
-    float velocityThreshold;
-} Config;
 
 void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
     *flShadow = flashlightOn ? fmin(*flShadow + 6.0f * dt, 0.8f) : fmax(*flShadow - 6.0f * dt, 0.0f);
@@ -158,14 +151,7 @@ int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
 
 int main() {
     // ================ CONFIG
-    Config config = {
-        .minScale             = 0.5f,
-        .scrollSpeed          = 1.5f,
-        .dragFriction         = 6.0f,
-        .scaleFriction        = 4.0f,
-        .initialFlDeltaRadius = 250.0f,
-        .velocityThreshold    = 15.0f,
-    };
+    Config config = defaultConfig;
 
     // ================ GET CURRENT DISPLAY
     Display *display = XOpenDisplay(NULL);
