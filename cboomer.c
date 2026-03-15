@@ -14,8 +14,8 @@
 #include <GL/glx.h>
 
 #define INITIAL_FL_DELTA_RADIUS 250.0f
-#define VELOCITY_THRESHOLD 15.0f
-#define MAX_SCALE 10.0f
+#define VELOCITY_THRESHOLD      15.0f
+#define MAX_SCALE               10.0f
 
 // ================ SHADER SOURCES
 static const char *VERTEX_SHADER_SOURCE =
@@ -72,7 +72,7 @@ typedef struct {
 typedef struct {
     Vec2f curr;
     Vec2f prev;
-    int drag;
+    int   drag;
 } Mouse;
 
 typedef struct {
@@ -93,7 +93,7 @@ float vec2_length(Vec2f a)       { return sqrtf(a.x * a.x + a.y * a.y); }
 void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
     *flShadow = flashlightOn ? fmin(*flShadow + 6.0f * dt, 0.8f) : fmax(*flShadow - 6.0f * dt, 0.0f);
     if (fabs(*flDeltaRadius) > 1.0f) {
-        *flRadius = fmax(0.0f, *flRadius + *flDeltaRadius * dt);
+        *flRadius       = fmax(0.0f, *flRadius + *flDeltaRadius * dt);
         *flDeltaRadius -= *flDeltaRadius * 10.0f * dt;
     }
 }
@@ -105,17 +105,16 @@ Vec2f world_camera(Camera camera, Vec2f screenPos, Vec2f windowSize) {
 
 void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
     if (fabs(camera->deltaScale) > 0.5f) {
-        Vec2f p0 = vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f));
-        p0 = vec2_div(p0, camera->scale);
+        // p0 = (scalePivot - windowSize/2) / scale
+        Vec2f p0 = vec2_div(vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f)), camera->scale);
 
         camera->scale = camera->scale + camera->deltaScale * dt;
         if (camera->scale < config.minScale) camera->scale = config.minScale;
 
-        Vec2f p1 = vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f));
-        p1 = vec2_div(p1, camera->scale);
+        // p1 = (scalePivot - windowSize/2) / scale
+        Vec2f p1 = vec2_div(vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f)), camera->scale);
 
-        camera->position = vec2_add(camera->position, vec2_sub(p0, p1));
-
+        camera->position    = vec2_add(camera->position, vec2_sub(p0, p1));
         camera->deltaScale -= camera->deltaScale * dt * config.scaleFriction;
     }
 
@@ -131,7 +130,7 @@ GLuint compileShader(GLenum type, const char *source, const char *name) {
     glCompileShader(shader);
 
     GLint success;
-    char infoLog[512];
+    char  infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
@@ -144,18 +143,16 @@ GLuint compileShader(GLenum type, const char *source, const char *name) {
 }
 
 GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
-    GLuint program = glCreateProgram();
-
-    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertSource, "vertex shader");
+    GLuint program        = glCreateProgram();
+    GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, vertSource, "vertex shader");
     GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragSource, "fragment shader");
 
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
-
     glLinkProgram(program);
 
     GLint success;
-    char infoLog[512];
+    char  infoLog[512];
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, 512, NULL, infoLog);
@@ -179,9 +176,9 @@ int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
 int main() {
     // ================ CONFIG
     Config config = {
-        .minScale = 0.5f,
-        .scrollSpeed = 1.5f,
-        .dragFriction = 6.0f,
+        .minScale      = 0.5f,
+        .scrollSpeed   = 1.5f,
+        .dragFriction  = 6.0f,
         .scaleFriction = 4.0f
     };
 
@@ -194,17 +191,17 @@ int main() {
 
     // ================ SETUP X11 ERROR HANDLER
     XSetErrorHandler(xElevenErrorHandler);
-    
+
     // ================ GET WINDOW PARAMETERS
     Window root = DefaultRootWindow(display);
     XWindowAttributes root_attrs;
     XGetWindowAttributes(display, root, &root_attrs);
-    int screen_width = root_attrs.width;
+    int screen_width  = root_attrs.width;
     int screen_height = root_attrs.height;
     printf("Screen size: %dx%d\n", screen_width, screen_height);
 
     XRRScreenConfiguration *screenConfig = XRRGetScreenInfo(display, root);
-    int rate = XRRConfigCurrentRate(screenConfig);
+    int rate                             = XRRConfigCurrentRate(screenConfig);
     XRRFreeScreenConfigInfo(screenConfig);
     printf("Screen rate: %d Hz\n", rate);
 
@@ -233,12 +230,12 @@ int main() {
 
     // ================ CREATE AND SET UP WINDOW
     XSetWindowAttributes swa;
-    swa.colormap = XCreateColormap(display, root, vi->visual, AllocNone);
-    swa.event_mask = ButtonPressMask | ButtonReleaseMask |
-                     KeyPressMask | KeyReleaseMask |
-                     PointerMotionMask | ExposureMask | ClientMessage;
+    swa.colormap          = XCreateColormap(display, root, vi->visual, AllocNone);
+    swa.event_mask        = ButtonPressMask | ButtonReleaseMask |
+                            KeyPressMask | KeyReleaseMask |
+                            PointerMotionMask | ExposureMask | ClientMessage;
     swa.override_redirect = 1;
-    swa.save_under = 1;
+    swa.save_under        = 1;
 
     Window win = XCreateWindow(
         display, root,
@@ -251,7 +248,7 @@ int main() {
     XMapWindow(display, win);
 
     XClassHint classHint;
-    classHint.res_name = "cboomer";
+    classHint.res_name  = "cboomer";
     classHint.res_class = "Cboomer";
 
     XStoreName(display, win, "cboomer");
@@ -411,7 +408,6 @@ int main() {
                 if (mouse.drag) {
                     Vec2f worldPrev = world_camera(camera, mouse.prev, vec2(screen_width, screen_height));
                     Vec2f worldCurr = world_camera(camera, mouse.curr, vec2(screen_width, screen_height));
-
                     camera.position = vec2_add(camera.position, vec2_sub(worldPrev, worldCurr));
                     camera.velocity = vec2_mul(vec2_sub(worldPrev, worldCurr), rate);
                 }
@@ -433,7 +429,7 @@ int main() {
                         flDeltaRadius -= INITIAL_FL_DELTA_RADIUS;
                     } else {
                         camera.deltaScale += config.scrollSpeed;
-                        camera.scalePivot = mouse.curr;
+                        camera.scalePivot  = mouse.curr;
                     }
                 }
                 else if (event.xbutton.button == Button5) {
@@ -441,7 +437,7 @@ int main() {
                         flDeltaRadius += INITIAL_FL_DELTA_RADIUS;
                     } else {
                         camera.deltaScale -= config.scrollSpeed;
-                        camera.scalePivot = mouse.curr;
+                        camera.scalePivot  = mouse.curr;
                     }
                 }
                 break;
@@ -473,7 +469,7 @@ int main() {
         glUniform1f(glGetUniformLocation(shaderProgram, "cameraScale"), camera.scale);
         glUniform2f(glGetUniformLocation(shaderProgram, "windowSize"), screen_width, screen_height);
         glUniform2f(glGetUniformLocation(shaderProgram, "screenshotSize"),
-                    screenshot->image->width, screenshot->image->height);
+                                         screenshot->image->width, screenshot->image->height);
         glUniform2f(glGetUniformLocation(shaderProgram, "cursorPos"), mouse.curr.x, mouse.curr.y);
         glUniform1f(glGetUniformLocation(shaderProgram, "flShadow"), flShadow);
         glUniform1f(glGetUniformLocation(shaderProgram, "flRadius"), flRadius);
