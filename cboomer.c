@@ -244,9 +244,10 @@ int main() {
 
     XMapWindow(display, win);
 
-    XClassHint classHint;
-    classHint.res_name  = "cboomer";
-    classHint.res_class = "Cboomer";
+    XClassHint classHint = {
+        .res_name  = "cboomer",
+        .res_class = "Cboomer",
+    };
 
     XStoreName(display, win, "cboomer");
     XSetClassHint(display, win, &classHint);
