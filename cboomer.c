@@ -87,9 +87,8 @@ void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float
     }
 }
 
-// worldPos = (screenPos - windowSize/2) / camera.scale + camera.position
-Vec2f world_camera(Camera camera, Vec2f screenPos, Vec2f windowSize) {
-    return vec2_add(vec2_div(vec2_sub(screenPos, vec2_mul(windowSize, 0.5f)), camera.scale), camera.position);
+Vec2f world(Camera camera, Vec2f v) {
+    return vec2_div(v, camera.scale);
 }
 
 void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
@@ -371,8 +370,8 @@ int main() {
                 mouse.curr = (Vec2f){ .x = event.xmotion.x, .y = event.xmotion.y };
 
                 if (mouse.drag) {
-                    Vec2f worldPrev = world_camera(camera, mouse.prev, vec2(screen_width, screen_height));
-                    Vec2f worldCurr = world_camera(camera, mouse.curr, vec2(screen_width, screen_height));
+                    Vec2f worldPrev = world(camera, mouse.prev);
+                    Vec2f worldCurr = world(camera, mouse.curr);
                     camera.position = vec2_add(camera.position, vec2_sub(worldPrev, worldCurr));
                     camera.velocity = vec2_mul(vec2_sub(worldPrev, worldCurr), rate);
                 }
