@@ -69,7 +69,7 @@ typedef struct {
     int   drag;
 } Mouse;
 
-void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
+static void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float *flDeltaRadius, float dt) {
     *flShadow = flashlightOn ? fmin(*flShadow + 6.0f * dt, 0.8f) : fmax(*flShadow - 6.0f * dt, 0.0f);
     if (fabs(*flDeltaRadius) > 1.0f) {
         *flRadius       = fmax(0.0f, *flRadius + *flDeltaRadius * dt);
@@ -77,11 +77,11 @@ void update_flashlight(int flashlightOn, float *flShadow, float *flRadius, float
     }
 }
 
-Vec2f world(Camera camera, Vec2f v) {
+static Vec2f world(Camera camera, Vec2f v) {
     return vec2_div(v, camera.scale);
 }
 
-void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
+static void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f windowSize) {
     if (fabs(camera->deltaScale) > 0.5f) {
         // p0 = (scalePivot - windowSize/2) / scale
         Vec2f p0 = vec2_div(vec2_sub(camera->scalePivot, vec2_mul(windowSize, 0.5f)), camera->scale);
@@ -102,7 +102,7 @@ void update_camera(Camera *camera, Config config, float dt, Mouse mouse, Vec2f w
     }
 }
 
-GLuint compileShader(GLenum type, const char *source) {
+static GLuint compileShader(GLenum type, const char *source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
@@ -117,7 +117,7 @@ GLuint compileShader(GLenum type, const char *source) {
     return shader;
 }
 
-GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
+static GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
     GLuint program        = glCreateProgram();
     GLuint vertexShader   = compileShader(GL_VERTEX_SHADER, vertSource);
     GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragSource);
@@ -141,7 +141,7 @@ GLuint createShaderProgram(const char *vertSource, const char *fragSource) {
     return program;
 }
 
-int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
+static int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
     char errorMessage[256];
     XGetErrorText(display, errorEvent->error_code, errorMessage, sizeof(errorMessage));
     fprintf(stderr, "X11 Error: %s\n", errorMessage);
