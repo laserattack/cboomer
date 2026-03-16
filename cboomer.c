@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #define SCREENSHOT_IMPL
 #include "screenshot.h"
@@ -148,8 +149,34 @@ static int xElevenErrorHandler(Display *display, XErrorEvent *errorEvent) {
     return 0;
 }
 
-// TODO(20260315T234235): -h/--help flag
-int main() {
+void usage(const char *name) {
+    printf(
+        "WTF??:\n"
+        "  Usage: %s [OPTIONS]\n"
+        "  A zoomer application for X11\n"
+        "\n"
+        "Options:\n"
+        "  -h, --help     Show this help message\n"
+        "\n"
+        "Notes:\n"
+        "  Controls can be customized in config.h\n", name);
+}
+
+int main(int argc, char **argv) {
+
+    if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+            if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
+                usage(argv[0]);
+                return 0;
+            } else {
+                fprintf(stderr, "Unknown option: %s\n", argv[i]);
+                fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+                return 1;
+            }
+        }
+    }
+
     // ================ CONFIG
     Config config = defaultConfig;
 
@@ -318,7 +345,7 @@ int main() {
     unsigned int mask;
     XQueryPointer(display, root, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask);
     mouse.curr = (Vec2f){ .x = win_x, .y = win_y };
-    
+
     // ================ MAIN CYCLE: KEEP FOCUS, HANDLE ESC, RENDER TEXTURE
     XEvent event;
     int running = 1;
@@ -328,7 +355,7 @@ int main() {
     XGetInputFocus(display, &originWindow, &revertToReturn);
 
     float dt = 1.0f / rate;
-    
+
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
