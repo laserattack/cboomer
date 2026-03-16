@@ -43,7 +43,7 @@ make
 | Scroll wheel                    | Zoom in/out              |
 | <kbd>Ctrl</kbd> + Scroll wheel  | Change flashlight radius |
 
-You can modify controls in `config.h`
+You can modify the controls in `config.h` and recompile
 
 ## Project Structure
 
