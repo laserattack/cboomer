@@ -15,8 +15,8 @@ typedef struct {
 #endif
 } Screenshot;
 
-Screenshot  *newScreenshot(Display *display, Window window);
-void        destroyScreenshot(Display *display, Screenshot *screenshot);
+Screenshot *newScreenshot(Display *display, Window window);
+void       destroyScreenshot(Display *display, Screenshot *screenshot);
 
 // TODO(20260315T135543): Maybe add error checking
 
