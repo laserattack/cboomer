@@ -343,17 +343,13 @@ int main() {
                 if (key == config.keyEscape)     { running = 0;                        }
                 if (key == config.keyFlashlight) { flashlightOn = !flashlightOn;       }
                 if (key == config.keyReset)      { camera = (Camera){ .scale = 1.0f }; }
-                if (key == config.keyZoomIn || key == config.keyZoomInAlt) {
-                    if (!flashlightOn) {
-                        camera.deltaScale += config.scrollSpeed;
-                        camera.scalePivot  = mouse.curr;
-                    }
+                if (key == config.keyZoomIn) {
+                    camera.deltaScale += config.scrollSpeed;
+                    camera.scalePivot  = mouse.curr;
                 }
                 if (key == config.keyZoomOut) {
-                    if (!flashlightOn) {
-                        camera.deltaScale -= config.scrollSpeed;
-                        camera.scalePivot  = mouse.curr;
-                    }
+                    camera.deltaScale -= config.scrollSpeed;
+                    camera.scalePivot  = mouse.curr;
                 }
                 break;
 

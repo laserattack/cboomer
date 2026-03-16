@@ -20,7 +20,6 @@ typedef struct {
     KeySym keyReset;                 // Key to reset camera
     KeySym keyZoomIn;                // Key to zoom in
     KeySym keyZoomOut;               // Key to zoom out
-    KeySym keyZoomInAlt;             // Alternative key for zoom in (+)
     unsigned int modifierFlashlight; // Modifier for flashlight radius change (e.g., ControlMask)
 
     // Mouse bindings
@@ -48,7 +47,6 @@ Config defaultConfig = {
     .keyFlashlight        = XK_2,
     .keyReset             = XK_1,
     .keyZoomIn            = XK_equal,
-    .keyZoomInAlt         = XK_plus,
     .keyZoomOut           = XK_minus,
 
     // Ctrl = ControlMask,
