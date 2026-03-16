@@ -22,9 +22,9 @@ Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for 
   - X11 session (Wayland not supported)
   - GPU with OpenGL support (any modern GPU works)
 
-## Dependencies
+## Build from source
 
-**Only needed if building from source:**
+### Dependencies
 
 - X11 development libraries (libX11, libXext, libXrandr)
 - OpenGL development libraries (libGL, libGLX)
@@ -36,7 +36,7 @@ Example for Void linux:
 sudo xbps-install -S libglvnd-devel libX11-devel libXrandr-devel glew-devel
 ```
 
-## Build from source
+### Build and run
 
 ```
 make
