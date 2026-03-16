@@ -13,7 +13,12 @@ all: $(TARGET)
 $(TARGET): cboomer.c screenshot.h la.h config.h
 	$(CC) $(CFLAGS) -o $@ cboomer.c $(LDFLAGS)
 
+release: $(TARGET)
+	mkdir -p release
+	sharun lib4bin --with-wrappe --strip --dst-dir release ./$(TARGET)
+
 clean:
 	rm -f $(TARGET)
+	rm -rf release
 
 .PHONY: all clean
