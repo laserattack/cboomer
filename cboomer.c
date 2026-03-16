@@ -159,7 +159,8 @@ void usage(const char *name) {
         "  -h, --help     Show this help message\n"
         "\n"
         "Notes:\n"
-        "  Controls can be customized in config.h\n", name);
+        "  Controls can be customized in config.h\n",
+        name);
 }
 
 int main(int argc, char **argv) {
@@ -170,8 +171,10 @@ int main(int argc, char **argv) {
                 usage(argv[0]);
                 return 0;
             } else {
-                fprintf(stderr, "Unknown option: %s\n", argv[i]);
-                fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+                fprintf(stderr,
+                    "Unknown option: %s\n"
+                    "Try '%s --help' for more information\n",
+                    argv[i], argv[0]);
                 return 1;
             }
         }
