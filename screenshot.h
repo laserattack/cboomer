@@ -28,6 +28,8 @@ void       destroyScreenshot(Display *display, Screenshot *screenshot);
 #include <sys/shm.h>
 #endif
 
+#define UNUSED(x) (void)(x)
+
 Screenshot *newScreenshot(Display *display, Window window) {
     Screenshot *result = malloc(sizeof(Screenshot));
 
@@ -83,6 +85,7 @@ void destroyScreenshot(Display *display, Screenshot *screenshot) {
     shmctl(screenshot->shminfo->shmid, IPC_RMID, 0);
     free(screenshot->shminfo);
 #else
+    UNUSED(display);
     XDestroyImage(screenshot->image);
 #endif
     free(screenshot);
