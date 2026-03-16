@@ -1,7 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -O2
-LDFLAGS = -lX11 -lXext -lGL -lXrandr -lGLEW -lm
+LDFLAGS = -lX11 -lGL -lXext -lXrandr -lGLEW -lm
 TARGET = cboomer
+
+# XShm support (disabled by default, enable with: make USE_XSHM=1)
+ifdef USE_XSHM
+CFLAGS += -DUSE_XSHM
+endif
 
 all: $(TARGET)
 

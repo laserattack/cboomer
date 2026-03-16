@@ -30,6 +30,13 @@ make
 ./cboomer
 ```
 
+For faster screenshot capture with MIT-SHM:
+
+```
+make USE_XSHM=1
+./cboomer
+```
+
 ## Default Controls
 
 | Control                         | Action                   |
