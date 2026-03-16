@@ -13,13 +13,13 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - an X11 zoom
 
 ## Pre-built Binaries
 
-Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for **portable Linux executables**:
+Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for portable Linux executables:
 
 - Single-file executable - just download, make executable, and run
-- Includes all required libraries (X11, OpenGL, GLEW) - **no dependencies to install**
+- Includes all required libraries (X11, OpenGL, GLEW) - no dependencies to install
 - Only requires:
   - Linux x86_64 system
-  - X11 session (Wayland not supported)
+  - X11 (Wayland not supported)
   - GPU with OpenGL support (any modern GPU works)
 
 ## Build from source
