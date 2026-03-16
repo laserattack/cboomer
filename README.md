@@ -37,8 +37,8 @@ make
 | <kbd>Esc</kbd>                  | Quit                     |
 | <kbd>1</kbd>                    | Reset camera             |
 | <kbd>2</kbd>                    | Toggle flashlight        |
-| <kbd>=</kbd> or <kbd>+</kbd>    | Zoom in                  |
-| <kbd>-</kbd> or <kbd>_</kbd>    | Zoom out                 |
+| <kbd>=</kbd>                    | Zoom in                  |
+| <kbd>-</kbd>                    | Zoom out                 |
 | Drag with left mouse            | Pan the image            |
 | Scroll wheel                    | Zoom in/out              |
 | <kbd>Ctrl</kbd> + Scroll wheel  | Change flashlight radius |
