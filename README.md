@@ -11,7 +11,20 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - an X11 zoom
 - Configurable controls and behavior
 - Clean, modular C code with single-header libraries
 
+## Pre-built Binaries
+
+Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for **portable Linux executables**:
+
+- Single-file executable - just download, make executable, and run
+- Includes all required libraries (X11, OpenGL, GLEW) - **no dependencies to install**
+- Only requires:
+  - Linux x86_64 system
+  - X11 session (Wayland not supported)
+  - GPU with OpenGL support (any modern GPU works)
+
 ## Dependencies
+
+**Only needed if building from source:**
 
 - X11 development libraries (libX11, libXext, libXrandr)
 - OpenGL development libraries (libGL, libGLX)
