@@ -1,4 +1,4 @@
-CC = gcc
+CC = cc
 CFLAGS = -Wall -Wextra -O2
 LDFLAGS = -lX11 -lGL -lXext -lXrandr -lGLEW -lm
 TARGET = cboomer
