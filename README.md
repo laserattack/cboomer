@@ -36,7 +36,7 @@ Example for Void linux:
 sudo xbps-install -S libglvnd-devel libX11-devel libXrandr-devel glew-devel
 ```
 
-## Quick Start
+## Build from source
 
 ```
 make
