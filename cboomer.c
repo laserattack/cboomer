@@ -263,31 +263,42 @@ int main(int argc, char **argv) {
            screenshot->image->height);
 
     // ================ INITIALIZE OPENGL
+    // create opengl context
     GLXContext glc = glXCreateContext(display, vi, NULL, GL_TRUE);
-
+    // binding an opengl context to window
     glXMakeCurrent(display, win, glc);
-
+    // initializing glew to use opengl extensions
     GLenum err = glewInit();
     if (err != GLEW_OK) {
         fprintf(stderr, "GLEW initialization failed: %s\n", glewGetErrorString(err));
         return 1;
     }
     printf("GLEW initialized: %s\n", glewGetString(GLEW_VERSION));
-
+    // specifying the area to be used for drawing
     glViewport(0, 0, screen_width, screen_height);
+    // enable 2d textures support
     glEnable(GL_TEXTURE_2D);
 
     // ================ CREATE TEXTURE FROM SCREENSHOT
     GLuint texture;
+    // generate texture
     glGenTextures(1, &texture);
+    // activate texture
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
+    // uploading pixels to gpu
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                  screenshot->image->width,
                  screenshot->image->height, 0,
                  GL_BGRA, GL_UNSIGNED_BYTE,
                  screenshot->image->data);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Texture display settings
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     // ================ CREATE SHADER PROGRAM
     GLuint shaderProgram = createShaderProgram(VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
@@ -301,29 +312,33 @@ int main(int argc, char **argv) {
     float w = screenshot->image->width;
     float h = screenshot->image->height;
 
+    // defining the area of the drawing space
     float vertices[] = {
-        w, 0, 0.0f, 1.0f, 1.0f,
-        w, h, 0.0f, 1.0f, 0.0f,
-        0, h, 0.0f, 0.0f, 0.0f,
-        0, 0, 0.0f, 0.0f, 1.0f
+        w, 0, 0.0f, 1.0f, 1.0f, // viewport position: w,0,0 | texture coord: 1,1
+        w, h, 0.0f, 1.0f, 0.0f, // viewport position: w,h,0 | texture coord: 1,0
+        0, h, 0.0f, 0.0f, 0.0f, // viewport position: 0,h,0 | texture coord: 0,0
+        0, 0, 0.0f, 0.0f, 1.0f, // viewport position: 0,0,0 | texture coord: 0,1
     };
 
-    unsigned int indices[] = { 0, 1, 3, 1, 2, 3 };
+    unsigned int indices[] = { 0, 1, 3,   // first triangle
+                               1, 2, 3 }; // second triangle
 
+    // copy data to gpu
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // position attribute
+    // explain to gpu how to interpret the vertex data
+    // Attribute 0: position (3 floats) - used for "in vec3 aPos" in vertex shader
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // texture coord attribute
+    // Attribute 1: texture coordinates (2 floats) - used for "in vec2 aTexCoord" in vertex shader
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // Uniform for texture
+    // tell shader which texture unit to use (unit 0 = screenshot)
     glUniform1i(glGetUniformLocation(shaderProgram, "tex"), 0);
 
     // ================ FLASHLIGHT BASE VARIABLES
@@ -355,8 +370,9 @@ int main(int argc, char **argv) {
     while (running) {
         XSetInputFocus(display, win, RevertToParent, CurrentTime);
 
-        update_flashlight(flashlightOn, &flShadow, &flRadius, &flDeltaRadius, dt);
-        update_camera(&camera, config, dt, mouse, vec2(screen_width, screen_height));
+        XWindowAttributes wa;
+        XGetWindowAttributes(display, win, &wa);
+        glViewport(0, 0, wa.width, wa.height);
 
         while (XPending(display)) {
             XNextEvent(display, &event);
@@ -419,15 +435,16 @@ int main(int argc, char **argv) {
             }
         }
 
+        update_camera(&camera, config, dt, mouse, vec2(wa.width, wa.height));
+        update_flashlight(flashlightOn, &flShadow, &flRadius, &flDeltaRadius, dt);
+
+        // draw
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shaderProgram);
-
-        // Set uniforms
         glUniform2f(glGetUniformLocation(shaderProgram, "cameraPos"), camera.position.x, camera.position.y);
         glUniform1f(glGetUniformLocation(shaderProgram, "cameraScale"), camera.scale);
-        glUniform2f(glGetUniformLocation(shaderProgram, "windowSize"), screen_width, screen_height);
+        glUniform2f(glGetUniformLocation(shaderProgram, "windowSize"), wa.width, wa.height);
         glUniform2f(glGetUniformLocation(shaderProgram, "screenshotSize"),
                                          screenshot->image->width, screenshot->image->height);
         glUniform2f(glGetUniformLocation(shaderProgram, "cursorPos"), mouse.curr.x, mouse.curr.y);
@@ -438,6 +455,7 @@ int main(int argc, char **argv) {
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+        // swap buffers
         glXSwapBuffers(display, win);
         glFinish();
     }
