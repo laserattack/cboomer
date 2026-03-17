@@ -2,7 +2,7 @@
 
 ![](./demo.gif)
 
-A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - an X11 zoomer application for Linux. This port focuses on the core functionality (screenshot viewing, zoom, pan, flashlight) and does not yet implement live window tracking (honestly, I've never used it)
+A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer application for Linux. This port focuses on the core functionality (screenshot viewing, zoom, pan, flashlight) and does not yet implement live window tracking (honestly, I've never used it)
 
 ## Features
 
@@ -15,12 +15,11 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - an X11 zoom
 
 Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for portable Linux executables:
 
-- Single-file executable - just download, make executable, and run
-- Includes all required libraries (X11, OpenGL, GLEW) - no dependencies to install
-- Only requires:
-  - Linux x86_64 system
-  - X11 (Wayland not supported)
-  - GPU with OpenGL support (any modern GPU works)
+Requires:
+
+- Linux x86_64 system
+- X11
+- GPU with OpenGL support (any modern GPU works)
 
 ## Build from source
 
