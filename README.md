@@ -13,9 +13,7 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer ap
 
 ## Pre-built Binaries
 
-Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for portable Linux executables:
-
-Requires:
+Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for portable Linux executables. Requires:
 
 - Linux x86_64 system
 - X11
