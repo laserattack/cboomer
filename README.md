@@ -8,7 +8,6 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer ap
 
 - Fullscreen screenshot viewer with smooth zoom and pan
 - Flashlight effect that follows your cursor
-- Configurable controls and behavior
 - Clean, modular C code with single-header libraries
 
 ## Pre-built Binaries
