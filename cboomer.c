@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
            screenshot->image->width,
            screenshot->image->height);
 
-    // ================ INITIALIZE OPENGL AND CREATE TEXTURE FROM SCREENSHOT
+    // ================ INITIALIZE OPENGL
     GLXContext glc = glXCreateContext(display, vi, NULL, GL_TRUE);
 
     glXMakeCurrent(display, win, glc);
@@ -275,24 +275,17 @@ int main(int argc, char **argv) {
     printf("GLEW initialized: %s\n", glewGetString(GLEW_VERSION));
 
     glViewport(0, 0, screen_width, screen_height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, screen_width, screen_height, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
     glEnable(GL_TEXTURE_2D);
 
+    // ================ CREATE TEXTURE FROM SCREENSHOT
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
                  screenshot->image->width,
                  screenshot->image->height, 0,
                  GL_BGRA, GL_UNSIGNED_BYTE,
                  screenshot->image->data);
-
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
