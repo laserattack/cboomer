@@ -3,6 +3,8 @@
 
 #include <X11/keysym.h>
 
+// TODO(20260426T214521): think about what else to put in the config
+
 typedef struct {
     // Camera settings
     float minScale;                  // Minimum allowed zoom scale

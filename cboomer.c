@@ -1,3 +1,5 @@
+// TODO(20260426T215403): wayland compatible
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
