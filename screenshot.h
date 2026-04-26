@@ -30,21 +30,21 @@ void       destroyScreenshot(Display *display, Screenshot *screenshot);
 
 #define UNUSED(x) (void)(x)
 
-Screenshot *newScreenshot(Display *display, Window window) {
+Screenshot *newScreenshot(Display *d, Window w) {
     Screenshot *result = malloc(sizeof(Screenshot));
 
     XWindowAttributes attributes;
-    XGetWindowAttributes(display, window, &attributes);
+    XGetWindowAttributes(d, w, &attributes);
 
 #ifdef USE_XSHM
     result->shminfo = malloc(sizeof(XShmSegmentInfo));
 
-    int screen = DefaultScreen(display);
+    int screen = DefaultScreen(d);
 
     result->image = XShmCreateImage(
-        display,
-        DefaultVisual(display, screen),
-        DefaultDepthOfScreen(ScreenOfDisplay(display, screen)),
+        d,
+        DefaultVisual(d, screen),
+        DefaultDepthOfScreen(ScreenOfDisplay(d, screen)),
         ZPixmap,
         NULL,
         result->shminfo,
@@ -62,11 +62,11 @@ Screenshot *newScreenshot(Display *display, Window window) {
     result->image->data       = result->shminfo->shmaddr;
     result->shminfo->readOnly = False;
 
-    XShmAttach(display, result->shminfo);
+    XShmAttach(d, result->shminfo);
 
-    XShmGetImage(display, window, result->image, 0, 0, AllPlanes);
+    XShmGetImage(d, w, result->image, 0, 0, AllPlanes);
 #else // USE_XSHM
-    result->image = XGetImage(display, window, 0, 0,
+    result->image = XGetImage(d, w, 0, 0,
                               attributes.width, attributes.height,
                               AllPlanes, ZPixmap);
 #endif // USE_XSHM
@@ -74,21 +74,21 @@ Screenshot *newScreenshot(Display *display, Window window) {
     return result;
 }
 
-void destroyScreenshot(Display *display, Screenshot *screenshot) {
-    if (!screenshot) return;
+void destroyScreenshot(Display *d, Screenshot *s) {
+    if (!s) return;
 
 #ifdef USE_XSHM
-    XSync(display, False);
-    XShmDetach(display, screenshot->shminfo);
-    XDestroyImage(screenshot->image);
-    shmdt(screenshot->shminfo->shmaddr);
-    shmctl(screenshot->shminfo->shmid, IPC_RMID, 0);
-    free(screenshot->shminfo);
+    XSync(d, False);
+    XShmDetach(d, s->shminfo);
+    XDestroyImage(s->image);
+    shmdt(s->shminfo->shmaddr);
+    shmctl(s->shminfo->shmid, IPC_RMID, 0);
+    free(s->shminfo);
 #else
-    UNUSED(display);
-    XDestroyImage(screenshot->image);
+    UNUSED(d);
+    XDestroyImage(s->image);
 #endif
-    free(screenshot);
+    free(s);
 }
 
 #endif // SCREENSHOT_IMPL

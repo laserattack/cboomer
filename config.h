@@ -15,11 +15,11 @@ typedef struct {
     float velocityThreshold;         // Minimum velocity to apply inertia
 
     // Key bindings
-    KeySym keyEscape;                // Key to quit the program
-    KeySym keyFlashlight;            // Key to toggle flashlight
-    KeySym keyReset;                 // Key to reset camera
-    KeySym keyZoomIn;                // Key to zoom in
-    KeySym keyZoomOut;               // Key to zoom out
+    KeySym       keyEscape;          // Key to quit the program
+    KeySym       keyFlashlight;      // Key to toggle flashlight
+    KeySym       keyReset;           // Key to reset camera
+    KeySym       keyZoomIn;          // Key to zoom in
+    KeySym       keyZoomOut;         // Key to zoom out
     unsigned int modifierFlashlight; // Modifier for flashlight radius change (e.g., ControlMask)
 
     // Mouse bindings
@@ -63,4 +63,5 @@ Config defaultConfig = {
 };
 
 #endif // CONFIG_IMPL
+
 #endif // CONFIG_H
