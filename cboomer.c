@@ -491,7 +491,7 @@ static void process_events(X11Context *x11, App *app) {
 // ================ INITIALIZE
 
 static void init_app(App *app) {
-    app->config = defaultConfig;
+    app->config           = defaultConfig;
     app->state.camera     = (Camera){ .scale = 1.0f };
     app->state.mouse      = (Mouse){0};
     app->state.flashlight = (Flashlight){
@@ -500,7 +500,7 @@ static void init_app(App *app) {
         .radius      = 200.0f,
         .deltaRadius = 0.0f
     };
-    app->state.dt = 0.0f;
+    app->state.dt      = 0.0f;
     app->state.running = 1;
 }
 
@@ -522,17 +522,17 @@ static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
     while (app->state.running) {
         x11_grab_focus(x11);
 
-        int windowWidth, windowHeight;
-        x11_get_window_size(x11, &windowWidth, &windowHeight);
-        glViewport(0, 0, windowWidth, windowHeight);
+        int ww, wh;
+        x11_get_window_size(x11, &ww, &wh);
+        glViewport(0, 0, ww, wh);
 
         process_events(x11, app);
 
         camera_update(&app->state.camera, app->config, app->state.dt,
-                      app->state.mouse, vec2(windowWidth, windowHeight));
+                      app->state.mouse, vec2(ww, wh));
         flashlight_update(&app->state.flashlight, app->state.dt);
 
-        opengl_render(gl, app, windowWidth, windowHeight);
+        opengl_render(gl, app, ww, wh);
 
         glXSwapBuffers(x11->display, x11->window);
         glFinish();
