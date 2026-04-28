@@ -15,8 +15,8 @@ typedef struct {
 #endif
 } Screenshot;
 
-Screenshot *newScreenshot(Display *display, Window window);
-void       destroyScreenshot(Display *display, Screenshot *screenshot);
+Screenshot *new_screenshot(Display *display, Window window);
+void       destroy_screenshot(Display *display, Screenshot *screenshot);
 
 // TODO(20260315T135543): Maybe add error checking
 
@@ -30,7 +30,7 @@ void       destroyScreenshot(Display *display, Screenshot *screenshot);
 
 #define UNUSED(x) (void)(x)
 
-Screenshot *newScreenshot(Display *d, Window w) {
+Screenshot *new_screenshot(Display *d, Window w) {
     Screenshot *result = malloc(sizeof(Screenshot));
 
     XWindowAttributes attributes;
@@ -74,7 +74,7 @@ Screenshot *newScreenshot(Display *d, Window w) {
     return result;
 }
 
-void destroyScreenshot(Display *d, Screenshot *s) {
+void destroy_screenshot(Display *d, Screenshot *s) {
     if (!s) return;
 
 #ifdef USE_XSHM

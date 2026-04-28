@@ -23,20 +23,20 @@ static const char *VERTEX_SHADER_SOURCE =
     "in vec3       aPos;\n"
     "in vec2       aTexCoord;\n"
     "out vec2      texcoord;\n"
-    "uniform vec2  cameraPos;\n"
-    "uniform float cameraScale;\n"
-    "uniform vec2  windowSize;\n"
-    "uniform vec2  screenshotSize;\n"
+    "uniform vec2  camera_pos;\n"
+    "uniform float camera_scale;\n"
+    "uniform vec2  window_size;\n"
+    "uniform vec2  screenshot_size;\n"
     "vec3 to_world(vec3 v) {\n"
     "    vec2 ratio = vec2(\n"
-    "        windowSize.x / screenshotSize.x / cameraScale,\n"
-    "        windowSize.y / screenshotSize.y / cameraScale);\n"
-    "    return vec3((v.x / screenshotSize.x * 2.0 - 1.0) / ratio.x,\n"
-    "                (v.y / screenshotSize.y * 2.0 - 1.0) / ratio.y,\n"
+    "        window_size.x / screenshot_size.x / camera_scale,\n"
+    "        window_size.y / screenshot_size.y / camera_scale);\n"
+    "    return vec3((v.x / screenshot_size.x * 2.0 - 1.0) / ratio.x,\n"
+    "                (v.y / screenshot_size.y * 2.0 - 1.0) / ratio.y,\n"
     "                v.z);\n"
     "}\n"
     "void main() {\n"
-    "    gl_Position = vec4(to_world((aPos - vec3(cameraPos * vec2(1.0, -1.0), 0.0))), 1.0);\n"
+    "    gl_Position = vec4(to_world((aPos - vec3(camera_pos * vec2(1.0, -1.0), 0.0))), 1.0);\n"
     "    texcoord    = aTexCoord;\n"
     "}\n";
 
@@ -45,24 +45,24 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "out mediump vec4  color;\n"
     "in mediump vec2   texcoord;\n"
     "uniform sampler2D tex;\n"
-    "uniform vec2      cursorPos;\n"
-    "uniform vec2      windowSize;\n"
-    "uniform float     flShadow;\n"
-    "uniform float     flRadius;\n"
-    "uniform float     cameraScale;\n"
+    "uniform vec2      cursor_pos;\n"
+    "uniform vec2      window_size;\n"
+    "uniform float     fl_shadow;\n"
+    "uniform float     fl_radius;\n"
+    "uniform float     camera_scale;\n"
     "void main() {\n"
-    "    vec4 cursor = vec4(cursorPos.x, windowSize.y - cursorPos.y, 0.0, 1.0);\n"
+    "    vec4 cursor = vec4(cursor_pos.x, window_size.y - cursor_pos.y, 0.0, 1.0);\n"
     "    color = mix(\n"
     "        texture(tex, texcoord), vec4(0.0, 0.0, 0.0, 0.0),\n"
-    "        length(cursor - gl_FragCoord) < (flRadius * cameraScale) ? 0.0 : flShadow);\n"
+    "        length(cursor - gl_FragCoord) < (fl_radius * camera_scale) ? 0.0 : fl_shadow);\n"
     "}\n";
 
 typedef struct {
     Vec2f position;
     Vec2f velocity;
     float scale;
-    float deltaScale;
-    Vec2f scalePivot;
+    float delta_scale;
+    Vec2f scale_pivot;
 } Camera;
 
 typedef struct {
@@ -75,19 +75,19 @@ typedef struct {
     int   enabled;
     float shadow;
     float radius;
-    float deltaRadius; // speed of radius change
+    float delta_radius; // speed of radius change
 } Flashlight;
 
 typedef struct {
     Display     *display;
     Window      root;
     Window      window;
-    XVisualInfo *visualInfo;
-    GLXContext  glContext;
-    Window      originalFocusWindow; // window that had focus before we stole it
-    int         screenWidth;
-    int         screenHeight;
-    int         refreshRate;
+    XVisualInfo *visual_info;
+    GLXContext  gl_context;
+    Window      original_focus_window; // window that had focus before we stole it
+    int         screen_width;
+    int         screen_height;
+    int         refresh_rate;
 } X11Context;
 
 typedef struct {
@@ -96,8 +96,8 @@ typedef struct {
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
-    int    screenshotWidth;
-    int    screenshotHeight;
+    int    screenshot_width;
+    int    screenshot_height;
 } OpenGLContext;
 
 typedef struct {
@@ -131,69 +131,66 @@ static int x11_init(X11Context *ctx) {
 
     XSetErrorHandler(x11_error_handler);
 
-    ctx->root         = DefaultRootWindow(ctx->display);
+    ctx->root = DefaultRootWindow(ctx->display);
     XWindowAttributes root_attrs;
     XGetWindowAttributes(ctx->display, ctx->root, &root_attrs);
-    ctx->screenWidth  = root_attrs.width;
-    ctx->screenHeight = root_attrs.height;
+    ctx->screen_width  = root_attrs.width;
+    ctx->screen_height = root_attrs.height;
 
     XRRScreenConfiguration *sc = XRRGetScreenInfo(ctx->display, ctx->root);
-    ctx->refreshRate           = XRRConfigCurrentRate(sc);
+    ctx->refresh_rate          = XRRConfigCurrentRate(sc);
     XRRFreeScreenConfigInfo(sc);
 
     printf("Screen: %dx%d @ %dHz\n",
-           ctx->screenWidth, ctx->screenHeight, ctx->refreshRate);
+           ctx->screen_width, ctx->screen_height, ctx->refresh_rate);
 
     return 1;
 }
 
 static int x11_check_glx(X11Context *ctx) {
-    int glxMajor, glxMinor;
-    if (!glXQueryVersion(ctx->display, &glxMajor, &glxMinor) ||
-        (glxMajor == 1 && glxMinor < 3) || (glxMajor < 1)) {
+    int glx_major, glx_minor;
+    if (!glXQueryVersion(ctx->display, &glx_major, &glx_minor) ||
+        (glx_major == 1 && glx_minor < 3) || (glx_major < 1)) {
         fprintf(stderr, "Invalid GLX version\n");
         return 0;
     }
-    printf("GLX version: %d.%d\n", glxMajor, glxMinor);
+    printf("GLX version: %d.%d\n", glx_major, glx_minor);
     return 1;
 }
 
 static int x11_create_window(X11Context *ctx) {
     static int attrs[] = {GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None};
-    ctx->visualInfo    = glXChooseVisual(ctx->display, 0, attrs);
-    if (!ctx->visualInfo) {
+    ctx->visual_info   = glXChooseVisual(ctx->display, 0, attrs);
+    if (!ctx->visual_info) {
         fprintf(stderr, "No appropriate visual found\n");
         return 0;
     }
-    printf("Visual ID: 0x%lx\n", ctx->visualInfo->visualid);
+    printf("Visual ID: 0x%lx\n", ctx->visual_info->visualid);
 
     XSetWindowAttributes swa;
-    swa.colormap          = XCreateColormap(ctx->display, ctx->root,
-                                            ctx->visualInfo->visual, AllocNone);
-    swa.event_mask        = ButtonPressMask | ButtonReleaseMask |
-                            KeyPressMask | KeyReleaseMask |
+    swa.colormap          = XCreateColormap(ctx->display, ctx->root, ctx->visual_info->visual, AllocNone);
+    swa.event_mask        = ButtonPressMask | ButtonReleaseMask | KeyPressMask | KeyReleaseMask |
                             PointerMotionMask | ExposureMask | ClientMessage;
     swa.override_redirect = 1;
     swa.save_under        = 1;
 
     ctx->window = XCreateWindow(ctx->display, ctx->root,
-                                0, 0, ctx->screenWidth, ctx->screenHeight, 0,
-                                ctx->visualInfo->depth, InputOutput,
-                                ctx->visualInfo->visual,
+                                0, 0, ctx->screen_width, ctx->screen_height, 0,
+                                ctx->visual_info->depth, InputOutput,
+                                ctx->visual_info->visual,
                                 CWColormap | CWEventMask |
                                 CWOverrideRedirect | CWSaveUnder, &swa);
 
     XStoreName(ctx->display, ctx->window, "cboomer");
-    XClassHint classHint = {"cboomer", "Cboomer"};
-    XSetClassHint(ctx->display, ctx->window, &classHint);
+    XClassHint class_hint = {"cboomer", "Cboomer"};
+    XSetClassHint(ctx->display, ctx->window, &class_hint);
 
     XMapWindow(ctx->display, ctx->window);
 
-    ctx->glContext = glXCreateContext(ctx->display, ctx->visualInfo,
-                                      NULL, GL_TRUE);
-    glXMakeCurrent(ctx->display, ctx->window, ctx->glContext);
+    ctx->gl_context = glXCreateContext(ctx->display, ctx->visual_info, NULL, GL_TRUE);
+    glXMakeCurrent(ctx->display, ctx->window, ctx->gl_context);
 
-    XGetInputFocus(ctx->display, &ctx->originalFocusWindow, &(int){0});
+    XGetInputFocus(ctx->display, &ctx->original_focus_window, &(int){0});
 
     return 1;
 }
@@ -203,8 +200,7 @@ static void x11_grab_focus(X11Context *ctx) {
 }
 
 static void x11_restore_focus(X11Context *ctx) {
-    XSetInputFocus(ctx->display, ctx->originalFocusWindow,
-                   RevertToParent, CurrentTime);
+    XSetInputFocus(ctx->display, ctx->original_focus_window, RevertToParent, CurrentTime);
     XSync(ctx->display, False);
 }
 
@@ -216,12 +212,12 @@ static void x11_get_window_size(X11Context *ctx, int *w, int *h) {
 }
 
 static void x11_cleanup(X11Context *ctx) {
-    if (ctx->glContext) {
+    if (ctx->gl_context) {
         glXMakeCurrent(ctx->display, None, NULL);
-        glXDestroyContext(ctx->display, ctx->glContext);
+        glXDestroyContext(ctx->display, ctx->gl_context);
     }
     if (ctx->window) XDestroyWindow(ctx->display, ctx->window);
-    if (ctx->visualInfo) XFree(ctx->visualInfo);
+    if (ctx->visual_info) XFree(ctx->visual_info);
     if (ctx->display) XCloseDisplay(ctx->display);
 }
 
@@ -251,17 +247,15 @@ static int opengl_init(OpenGLContext *gl, Screenshot *s) {
     printf("GLEW: %s\n", glewGetString(GLEW_VERSION));
 
     glEnable(GL_TEXTURE_2D);
-    gl->screenshotWidth  = s->image->width;
-    gl->screenshotHeight = s->image->height;
+    gl->screenshot_width  = s->image->width;
+    gl->screenshot_height = s->image->height;
 
     return 1;
 }
 
 static void opengl_create_program(OpenGLContext *gl) {
-    GLuint vertex   = opengl_compile_shader(GL_VERTEX_SHADER,
-                                            VERTEX_SHADER_SOURCE);
-    GLuint fragment = opengl_compile_shader(GL_FRAGMENT_SHADER,
-                                            FRAGMENT_SHADER_SOURCE);
+    GLuint vertex   = opengl_compile_shader(GL_VERTEX_SHADER, VERTEX_SHADER_SOURCE);
+    GLuint fragment = opengl_compile_shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
 
     gl->program = glCreateProgram();
     glAttachShader(gl->program, vertex);
@@ -299,9 +293,9 @@ static void opengl_create_texture(OpenGLContext *gl, Screenshot *s) {
 
 static void opengl_create_geometry(OpenGLContext *gl) {
     float v[] = {
-        gl->screenshotWidth, 0, 0.0f, 1.0f, 1.0f,
-        gl->screenshotWidth, gl->screenshotHeight, 0.0f, 1.0f, 0.0f,
-        0, gl->screenshotHeight, 0.0f, 0.0f, 0.0f,
+        gl->screenshot_width, 0, 0.0f, 1.0f, 1.0f,
+        gl->screenshot_width, gl->screenshot_height, 0.0f, 1.0f, 0.0f,
+        0, gl->screenshot_height, 0.0f, 0.0f, 0.0f,
         0, 0, 0.0f, 0.0f, 1.0f,
     };
 
@@ -330,18 +324,18 @@ static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(gl->program);
-    glUniform2f(glGetUniformLocation(gl->program, "cameraPos"),
+    glUniform2f(glGetUniformLocation(gl->program, "camera_pos"),
                 app->state.camera.position.x, app->state.camera.position.y);
-    glUniform1f(glGetUniformLocation(gl->program, "cameraScale"),
+    glUniform1f(glGetUniformLocation(gl->program, "camera_scale"),
                 app->state.camera.scale);
-    glUniform2f(glGetUniformLocation(gl->program, "windowSize"), ww, wh);
-    glUniform2f(glGetUniformLocation(gl->program, "screenshotSize"),
-                gl->screenshotWidth, gl->screenshotHeight);
-    glUniform2f(glGetUniformLocation(gl->program, "cursorPos"),
+    glUniform2f(glGetUniformLocation(gl->program, "window_size"), ww, wh);
+    glUniform2f(glGetUniformLocation(gl->program, "screenshot_size"),
+                gl->screenshot_width, gl->screenshot_height);
+    glUniform2f(glGetUniformLocation(gl->program, "cursor_pos"),
                 app->state.mouse.curr.x, app->state.mouse.curr.y);
-    glUniform1f(glGetUniformLocation(gl->program, "flShadow"),
+    glUniform1f(glGetUniformLocation(gl->program, "fl_shadow"),
                 app->state.flashlight.shadow);
-    glUniform1f(glGetUniformLocation(gl->program, "flRadius"),
+    glUniform1f(glGetUniformLocation(gl->program, "fl_radius"),
                 app->state.flashlight.radius);
 
     glBindTexture(GL_TEXTURE_2D, gl->texture);
@@ -359,40 +353,49 @@ static void opengl_cleanup(OpenGLContext *gl) {
 
 // ================ MAIN LOGIC
 
-static void camera_update(Camera *c, Config cfg, float dt, Mouse m, Vec2f ws) {
-    if (fabs(c->deltaScale) > 0.5f) {
+static void camera_update(App *app, Vec2f ws) {
+
+    Config *cfg = &app->config;
+    Camera *c   = &app->state.camera;
+    Mouse *m    = &app->state.mouse;
+    float dt    = app->state.dt;
+
+    if (fabs(c->delta_scale) > 0.5f) {
         Vec2f half = vec2_mul(ws, 0.5f);
-        Vec2f sub  = vec2_sub(c->scalePivot, half);
+        Vec2f sub  = vec2_sub(c->scale_pivot, half);
         Vec2f p0   = vec2_div(sub, c->scale);
 
-        c->scale += c->deltaScale * dt;
-        if (c->scale < cfg.minScale) c->scale = cfg.minScale;
+        c->scale += c->delta_scale * dt;
+        if (c->scale < cfg->min_scale) c->scale = cfg->min_scale;
 
-        Vec2f p1 = vec2_div(sub, c->scale);
-        c->position   = vec2_add(c->position, vec2_sub(p0, p1));
-        c->deltaScale -= c->deltaScale * dt * cfg.scaleFriction;
+        Vec2f p1       = vec2_div(sub, c->scale);
+        c->position    = vec2_add(c->position, vec2_sub(p0, p1));
+        c->delta_scale -= c->delta_scale * dt * cfg->scale_friction;
     }
 
-    if (!m.drag && vec2_length(c->velocity) > cfg.velocityThreshold) {
+    if (!m->drag && vec2_length(c->velocity) > cfg->velocity_threshold) {
         c->position = vec2_add(c->position, vec2_mul(c->velocity, dt));
-        c->velocity = vec2_sub(c->velocity,
-                               vec2_mul(c->velocity, dt * cfg.dragFriction));
+        c->velocity = vec2_sub(c->velocity, vec2_mul(c->velocity, dt * cfg->drag_friction));
     }
 }
 
-static void flashlight_update(Flashlight *fl, float dt) {
+static void flashlight_update(App *app) {
+
+    Flashlight *fl = &app->state.flashlight;
+    float dt       = app->state.dt;
+
     fl->shadow = fl->enabled ?
                  fmin(fl->shadow + 6.0f * dt, 0.8f) :
                  fmax(fl->shadow - 6.0f * dt, 0.0f);
 
-    if (fabs(fl->deltaRadius) > 1.0f) {
-        fl->radius      = fmax(0.0f, fl->radius + fl->deltaRadius * dt);
-        fl->deltaRadius -= fl->deltaRadius * 10.0f * dt;
+    if (fabs(fl->delta_radius) > 1.0f) {
+        fl->radius       = fmax(0.0f, fl->radius + fl->delta_radius * dt);
+        fl->delta_radius -= fl->delta_radius * 10.0f * dt;
     }
 }
 
-static Vec2f world_position(Camera camera, Vec2f pos) {
-    return vec2_div(pos, camera.scale);
+static Vec2f world_position(Camera *camera, Vec2f pos) {
+    return vec2_div(pos, camera->scale);
 }
 
 // ================ HANDLERS
@@ -400,23 +403,23 @@ static Vec2f world_position(Camera camera, Vec2f pos) {
 static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m) {
     KeySym key = XLookupKeysym(ke, 0);
 
-    if (key == app->config.keyEscape)
+    if (key == app->config.key_escape)
         app->state.running = 0;
 
-    if (key == app->config.keyFlashlight)
+    if (key == app->config.key_flashlight)
         app->state.flashlight.enabled = !app->state.flashlight.enabled;
 
-    if (key == app->config.keyReset)
+    if (key == app->config.key_reset)
         app->state.camera = (Camera){ .scale = 1.0f };
 
-    if (key == app->config.keyZoomIn) {
-        app->state.camera.deltaScale += app->config.scrollSpeed;
-        app->state.camera.scalePivot = m->curr;
+    if (key == app->config.key_zoom_in) {
+        app->state.camera.delta_scale += app->config.scroll_speed;
+        app->state.camera.scale_pivot = m->curr;
     }
 
-    if (key == app->config.keyZoomOut) {
-        app->state.camera.deltaScale -= app->config.scrollSpeed;
-        app->state.camera.scalePivot = m->curr;
+    if (key == app->config.key_zoom_out) {
+        app->state.camera.delta_scale -= app->config.scroll_speed;
+        app->state.camera.scale_pivot = m->curr;
     }
 }
 
@@ -424,10 +427,9 @@ static void handle_mousemove(XMotionEvent *motion, App *app, int rr) {
     app->state.mouse.curr = (Vec2f){ .x = motion->x, .y = motion->y };
 
     if (app->state.mouse.drag) {
-        Vec2f prev = world_position(app->state.camera, app->state.mouse.prev);
-        Vec2f cur  = world_position(app->state.camera, app->state.mouse.curr);
-        app->state.camera.position = vec2_add(app->state.camera.position,
-                                              vec2_sub(prev, cur));
+        Vec2f prev                 = world_position(&app->state.camera, app->state.mouse.prev);
+        Vec2f cur                  = world_position(&app->state.camera, app->state.mouse.curr);
+        app->state.camera.position = vec2_add(app->state.camera.position, vec2_sub(prev, cur));
         app->state.camera.velocity = vec2_mul(vec2_sub(prev, cur), rr);
     }
 
@@ -435,33 +437,33 @@ static void handle_mousemove(XMotionEvent *motion, App *app, int rr) {
 }
 
 static void handle_buttonpress(XButtonEvent *be, App *app) {
-    int ctrlPressed = (be->state & app->config.modifierFlashlight) != 0;
+    int ctrl_pressed = (be->state & app->config.modifier_flashlight) != 0;
 
-    if (be->button == app->config.buttonDrag) {
+    if (be->button == app->config.button_drag) {
         app->state.mouse.prev      = app->state.mouse.curr;
         app->state.mouse.drag      = 1;
         app->state.camera.velocity = (Vec2f){ .x = 0, .y = 0 };
     }
-    else if (be->button == app->config.buttonZoomIn) {
-        if (ctrlPressed && app->state.flashlight.enabled) {
-            app->state.flashlight.deltaRadius -= app->config.initialFlDeltaRadius;
+    else if (be->button == app->config.button_zoom_in) {
+        if (ctrl_pressed && app->state.flashlight.enabled) {
+            app->state.flashlight.delta_radius -= app->config.initial_fl_delta_radius;
         } else {
-            app->state.camera.deltaScale += app->config.scrollSpeed;
-            app->state.camera.scalePivot = app->state.mouse.curr;
+            app->state.camera.delta_scale += app->config.scroll_speed;
+            app->state.camera.scale_pivot = app->state.mouse.curr;
         }
     }
-    else if (be->button == app->config.buttonZoomOut) {
-        if (ctrlPressed && app->state.flashlight.enabled) {
-            app->state.flashlight.deltaRadius += app->config.initialFlDeltaRadius;
+    else if (be->button == app->config.button_zoom_out) {
+        if (ctrl_pressed && app->state.flashlight.enabled) {
+            app->state.flashlight.delta_radius += app->config.initial_fl_delta_radius;
         } else {
-            app->state.camera.deltaScale -= app->config.scrollSpeed;
-            app->state.camera.scalePivot = app->state.mouse.curr;
+            app->state.camera.delta_scale -= app->config.scroll_speed;
+            app->state.camera.scale_pivot = app->state.mouse.curr;
         }
     }
 }
 
 static void handle_buttonrelease(XButtonEvent *be, App *app) {
-    if (be->button == app->config.buttonDrag) {
+    if (be->button == app->config.button_drag) {
         app->state.mouse.drag = 0;
     }
 }
@@ -476,7 +478,7 @@ static void process_events(X11Context *x11, App *app) {
                 handle_keypress(&ev.xkey, app, &app->state.mouse);
                 break;
             case MotionNotify:
-                handle_mousemove(&ev.xmotion, app, x11->refreshRate);
+                handle_mousemove(&ev.xmotion, app, x11->refresh_rate);
                 break;
             case ButtonPress:
                 handle_buttonpress(&ev.xbutton, app);
@@ -491,14 +493,14 @@ static void process_events(X11Context *x11, App *app) {
 // ================ INITIALIZE
 
 static void init_app(App *app) {
-    app->config           = defaultConfig;
+    app->config           = default_config;
     app->state.camera     = (Camera){ .scale = 1.0f };
     app->state.mouse      = (Mouse){0};
     app->state.flashlight = (Flashlight){
-        .enabled     = 0,
-        .shadow      = 0.0f,
-        .radius      = 200.0f,
-        .deltaRadius = 0.0f
+        .enabled      = 0,
+        .shadow       = 0.0f,
+        .radius       = 200.0f,
+        .delta_radius = 0.0f
     };
     app->state.dt      = 0.0f;
     app->state.running = 1;
@@ -517,7 +519,7 @@ static void init_mouse_position(X11Context *x11, Mouse *m) {
 // ================ MAIN CYCLE
 
 static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
-    app->state.dt = 1.0f / x11->refreshRate;
+    app->state.dt = 1.0f / x11->refresh_rate;
 
     while (app->state.running) {
         x11_grab_focus(x11);
@@ -528,9 +530,8 @@ static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
 
         process_events(x11, app);
 
-        camera_update(&app->state.camera, app->config, app->state.dt,
-                      app->state.mouse, vec2(ww, wh));
-        flashlight_update(&app->state.flashlight, app->state.dt);
+        camera_update(app, vec2(ww, wh));
+        flashlight_update(app);
 
         opengl_render(gl, app, ww, wh);
 
@@ -566,7 +567,7 @@ int main(int argc, char **argv) {
     if (!x11_create_window(&x11)) { x11_cleanup(&x11); return 1; }
 
     // make screenshot
-    Screenshot *screenshot = newScreenshot(x11.display, x11.root);
+    Screenshot *screenshot = new_screenshot(x11.display, x11.root);
     if (!screenshot || !screenshot->image) {
         fprintf(stderr, "Failed to take screenshot\n");
         x11_cleanup(&x11);
@@ -578,7 +579,7 @@ int main(int argc, char **argv) {
     // init opengl
     OpenGLContext gl = {0};
     if (!opengl_init(&gl, screenshot)) {
-        destroyScreenshot(x11.display, screenshot);
+        destroy_screenshot(x11.display, screenshot);
         x11_cleanup(&x11);
         return 1;
     }
@@ -598,7 +599,7 @@ int main(int argc, char **argv) {
     // cleanup
     x11_restore_focus(&x11);
     opengl_cleanup(&gl);
-    destroyScreenshot(x11.display, screenshot);
+    destroy_screenshot(x11.display, screenshot);
     x11_cleanup(&x11);
 
     return 0;

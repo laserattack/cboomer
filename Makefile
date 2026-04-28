@@ -1,5 +1,5 @@
 CC = cc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -O2 -std=c99
 LDFLAGS = -lX11 -lGL -lXext -lXrandr -lGLEW -lm
 TARGET = cboomer
 

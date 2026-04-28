@@ -7,61 +7,61 @@
 
 typedef struct {
     // Camera settings
-    float minScale;                  // Minimum allowed zoom scale
-    float scrollSpeed;               // Speed of zoom when scrolling or using +/- keys
-    float dragFriction;              // Friction coefficient for camera movement inertia
-    float scaleFriction;             // Friction coefficient for zoom inertia
+    float min_scale;      // Minimum allowed zoom scale
+    float scroll_speed;   // Speed of zoom when scrolling or using +/- keys
+    float drag_friction;  // Friction coefficient for camera movement inertia
+    float scale_friction; // Friction coefficient for zoom inertia
 
     // Flashlight settings
-    float initialFlDeltaRadius;      // Initial delta for flashlight radius change per Ctrl+scroll
-    float velocityThreshold;         // Minimum velocity to apply inertia
+    float initial_fl_delta_radius; // Initial delta for flashlight radius change per Ctrl+scroll
+    float velocity_threshold;      // Minimum velocity to apply inertia
 
     // Key bindings
-    KeySym       keyEscape;          // Key to quit the program
-    KeySym       keyFlashlight;      // Key to toggle flashlight
-    KeySym       keyReset;           // Key to reset camera
-    KeySym       keyZoomIn;          // Key to zoom in
-    KeySym       keyZoomOut;         // Key to zoom out
-    unsigned int modifierFlashlight; // Modifier for flashlight radius change (e.g., ControlMask)
+    KeySym       key_escape;          // Key to quit the program
+    KeySym       key_flashlight;      // Key to toggle flashlight
+    KeySym       key_reset;           // Key to reset camera
+    KeySym       key_zoom_in;         // Key to zoom in
+    KeySym       key_zoom_out;        // Key to zoom out
+    unsigned int modifier_flashlight; // Modifier for flashlight radius change (e.g., ControlMask)
 
     // Mouse bindings
-    unsigned int buttonDrag;         // Mouse button for dragging
-    unsigned int buttonZoomIn;       // Mouse button for zoom in (scroll up)
-    unsigned int buttonZoomOut;      // Mouse button for zoom out (scroll down)
+    unsigned int button_drag;     // Mouse button for dragging
+    unsigned int button_zoom_in;  // Mouse button for zoom in (scroll up)
+    unsigned int button_zoom_out; // Mouse button for zoom out (scroll down)
 } Config;
 
 #ifdef CONFIG_IMPL
 
 // YOU CAN HACK THIS VALUES
-Config defaultConfig = {
+Config default_config = {
     // Camera settings
-    .minScale             = 0.5f,
-    .scrollSpeed          = 1.5f,
-    .dragFriction         = 6.0f,
-    .scaleFriction        = 4.0f,
+    .min_scale      = 0.5f,
+    .scroll_speed   = 1.5f,
+    .drag_friction  = 6.0f,
+    .scale_friction = 4.0f,
 
     // Flashlight settings
-    .initialFlDeltaRadius = 250.0f,
-    .velocityThreshold    = 15.0f,
+    .initial_fl_delta_radius = 250.0f,
+    .velocity_threshold      = 15.0f,
 
     // Key bindings
-    .keyEscape            = XK_Escape,
-    .keyFlashlight        = XK_2,
-    .keyReset             = XK_1,
-    .keyZoomIn            = XK_equal,
-    .keyZoomOut           = XK_minus,
+    .key_escape     = XK_Escape,
+    .key_flashlight = XK_2,
+    .key_reset      = XK_1,
+    .key_zoom_in    = XK_equal,
+    .key_zoom_out   = XK_minus,
 
     // Ctrl = ControlMask,
     // Left Alt = Mod1Mask,
     // Shift = ShiftMask,
     // Ctrl or Shift = ControlMask | ShiftMask,
     // etc.
-    .modifierFlashlight   = ControlMask,
+    .modifier_flashlight = ControlMask,
 
     // Mouse bindings
-    .buttonDrag           = Button1,
-    .buttonZoomIn         = Button4,
-    .buttonZoomOut        = Button5,
+    .button_drag     = Button1,
+    .button_zoom_in  = Button4,
+    .button_zoom_out = Button5,
 };
 
 #endif // CONFIG_IMPL
