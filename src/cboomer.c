@@ -279,7 +279,7 @@ static void opengl_create_program(OpenGLContext *gl) {
     glUniform1i(glGetUniformLocation(gl->program, "tex"), 0);
 }
 
-static void opengl_create_texture(OpenGLContext *gl, Screenshot *s) {
+static void opengl_create_texture(OpenGLContext *gl, App *app, Screenshot *s) {
     glGenTextures(1, &gl->texture);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gl->texture);
@@ -288,8 +288,13 @@ static void opengl_create_texture(OpenGLContext *gl, Screenshot *s) {
                  GL_BGRA, GL_UNSIGNED_BYTE, s->image->data);
 
     glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    if (app->config.texture_filter) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 }
@@ -589,14 +594,14 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    opengl_create_program(&gl);
-    opengl_create_texture(&gl, screenshot);
-    opengl_create_geometry(&gl);
-
     // init app
     App app;
     init_app(&app);
     init_mouse_position(&x11, &app.state.mouse);
+
+    opengl_create_program(&gl);
+    opengl_create_texture(&gl, &app, screenshot);
+    opengl_create_geometry(&gl);
 
     // main cycle
     main_loop(&x11, &gl, &app);

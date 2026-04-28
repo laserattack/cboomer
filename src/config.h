@@ -3,8 +3,6 @@
 
 #include <X11/keysym.h>
 
-// TODO(20260426T214521): think about what else to put in the config
-
 typedef struct {
     // Camera settings
     float min_scale;              // Minimum allowed zoom scale
@@ -22,6 +20,9 @@ typedef struct {
     float max_shadow_opacity;      // Maximum shadow opacity
     float radius_change_threshold; // Minimum magnitude to update flashlight radius (skip micro-changes)
     float feather;                 // Soft edge size in pixels
+
+    // OpenGL settings
+    int texture_filter;  // 0 = pixelated, 1 = smooth
 
     // Key bindings
     KeySym       key_escape;          // Key to quit the program
@@ -57,6 +58,9 @@ Config default_config = {
     .max_shadow_opacity      = 0.8f,
     .radius_change_threshold = 1.0f,
     .feather                 = 5.0f,
+
+    // OpenGL settings
+    .texture_filter = 1,
 
     // Key bindings
     .key_escape     = XK_Escape,
