@@ -54,8 +54,9 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "void main() {\n"
     "    vec4 cursor = vec4(cursor_pos.x, window_size.y - cursor_pos.y, 0.0, 1.0);\n"
     "    float dist = length(cursor - gl_FragCoord);\n"
-    "    float inner = fl_radius * camera_scale;\n"
-    "    float outer = inner + fl_feather * camera_scale;\n"
+    "    float radius_px = fl_radius * camera_scale;\n"
+    "    float inner = radius_px * (1.0 - fl_feather);\n"
+    "    float outer = radius_px;\n"
     "    float alpha = smoothstep(inner, outer, dist);\n"
     "    color = mix(texture(tex, texcoord), vec4(0.0, 0.0, 0.0, 0.0), alpha * fl_shadow);\n"
     "}\n";
