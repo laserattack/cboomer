@@ -360,7 +360,7 @@ static void camera_update(App *app, Vec2f ws) {
     Mouse *m    = &app->state.mouse;
     float dt    = app->state.dt;
 
-    if (fabs(c->delta_scale) > 0.5f) {
+    if (fabs(c->delta_scale) > app->config.scale_change_threshold) {
         Vec2f half = vec2_mul(ws, 0.5f);
         Vec2f sub  = vec2_sub(c->scale_pivot, half);
         Vec2f p0   = vec2_div(sub, c->scale);
@@ -385,12 +385,12 @@ static void flashlight_update(App *app) {
     float dt       = app->state.dt;
 
     fl->shadow = fl->enabled ?
-                 fmin(fl->shadow + 6.0f * dt, 0.8f) :
-                 fmax(fl->shadow - 6.0f * dt, 0.0f);
+                 fmin(fl->shadow + app->config.fade_speed * dt, app->config.max_shadow_opacity) :
+                 fmax(fl->shadow - app->config.fade_speed * dt, 0.0f);
 
-    if (fabs(fl->delta_radius) > 1.0f) {
+    if (fabs(fl->delta_radius) > app->config.radius_change_threshold) {
         fl->radius       = fmax(0.0f, fl->radius + fl->delta_radius * dt);
-        fl->delta_radius -= fl->delta_radius * 10.0f * dt;
+        fl->delta_radius -= fl->delta_radius * app->config.radius_damping * dt;
     }
 }
 
@@ -446,7 +446,7 @@ static void handle_buttonpress(XButtonEvent *be, App *app) {
     }
     else if (be->button == app->config.button_zoom_in) {
         if (ctrl_pressed && app->state.flashlight.enabled) {
-            app->state.flashlight.delta_radius -= app->config.initial_fl_delta_radius;
+            app->state.flashlight.delta_radius -= app->config.initial_delta_radius;
         } else {
             app->state.camera.delta_scale += app->config.scroll_speed;
             app->state.camera.scale_pivot = app->state.mouse.curr;
@@ -454,7 +454,7 @@ static void handle_buttonpress(XButtonEvent *be, App *app) {
     }
     else if (be->button == app->config.button_zoom_out) {
         if (ctrl_pressed && app->state.flashlight.enabled) {
-            app->state.flashlight.delta_radius += app->config.initial_fl_delta_radius;
+            app->state.flashlight.delta_radius += app->config.initial_delta_radius;
         } else {
             app->state.camera.delta_scale -= app->config.scroll_speed;
             app->state.camera.scale_pivot = app->state.mouse.curr;
@@ -499,7 +499,7 @@ static void init_app(App *app) {
     app->state.flashlight = (Flashlight){
         .enabled      = 0,
         .shadow       = 0.0f,
-        .radius       = 200.0f,
+        .radius       = app->config.initial_radius,
         .delta_radius = 0.0f
     };
     app->state.dt      = 0.0f;

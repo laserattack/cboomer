@@ -7,14 +7,20 @@
 
 typedef struct {
     // Camera settings
-    float min_scale;      // Minimum allowed zoom scale
-    float scroll_speed;   // Speed of zoom when scrolling or using +/- keys
-    float drag_friction;  // Friction coefficient for camera movement inertia
-    float scale_friction; // Friction coefficient for zoom inertia
+    float min_scale;              // Minimum allowed zoom scale
+    float scroll_speed;           // Speed of zoom when scrolling or using +/- keys
+    float drag_friction;          // Friction coefficient for camera movement inertia
+    float scale_friction;         // Friction coefficient for zoom inertia
+    float velocity_threshold;     // Minimum velocity to apply inertia
+    float scale_change_threshold; // Minimum magnitude to update camera zoom (skip micro-changes)
 
     // Flashlight settings
-    float initial_fl_delta_radius; // Initial delta for flashlight radius change per Ctrl+scroll
-    float velocity_threshold;      // Minimum velocity to apply inertia
+    float initial_radius;          // Starting flashlight radius
+    float initial_delta_radius;    // Initial delta for flashlight radius change per Ctrl+scroll
+    float radius_damping;          // Radius attenuation coefficient
+    float fade_speed;              // Speed of flashlight fade in/out
+    float max_shadow_opacity;      // Maximum shadow opacity
+    float radius_change_threshold; // Minimum magnitude to update flashlight radius (skip micro-changes)
 
     // Key bindings
     KeySym       key_escape;          // Key to quit the program
@@ -35,14 +41,20 @@ typedef struct {
 // YOU CAN HACK THIS VALUES
 Config default_config = {
     // Camera settings
-    .min_scale      = 0.5f,
-    .scroll_speed   = 1.5f,
-    .drag_friction  = 6.0f,
-    .scale_friction = 4.0f,
+    .min_scale              = 0.5f,
+    .scroll_speed           = 1.5f,
+    .drag_friction          = 6.0f,
+    .scale_friction         = 4.0f,
+    .velocity_threshold     = 15.0f,
+    .scale_change_threshold = 0.5f,
 
     // Flashlight settings
-    .initial_fl_delta_radius = 250.0f,
-    .velocity_threshold      = 15.0f,
+    .initial_radius          = 200.0f,
+    .initial_delta_radius    = 250.0f,
+    .radius_damping          = 10.0f,
+    .fade_speed              = 6.0f,
+    .max_shadow_opacity      = 0.8f,
+    .radius_change_threshold = 1.0f,
 
     // Key bindings
     .key_escape     = XK_Escape,
