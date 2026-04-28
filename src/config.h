@@ -21,6 +21,7 @@ typedef struct {
     float fade_speed;              // Speed of flashlight fade in/out
     float max_shadow_opacity;      // Maximum shadow opacity
     float radius_change_threshold; // Minimum magnitude to update flashlight radius (skip micro-changes)
+    float feather;                 // Soft edge size in pixels
 
     // Key bindings
     KeySym       key_escape;          // Key to quit the program
@@ -55,6 +56,7 @@ Config default_config = {
     .fade_speed              = 6.0f,
     .max_shadow_opacity      = 0.8f,
     .radius_change_threshold = 1.0f,
+    .feather                 = 5.0f,
 
     // Key bindings
     .key_escape     = XK_Escape,

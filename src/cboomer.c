@@ -50,11 +50,14 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "uniform float     fl_shadow;\n"
     "uniform float     fl_radius;\n"
     "uniform float     camera_scale;\n"
+    "uniform float     fl_feather;\n"
     "void main() {\n"
     "    vec4 cursor = vec4(cursor_pos.x, window_size.y - cursor_pos.y, 0.0, 1.0);\n"
-    "    color = mix(\n"
-    "        texture(tex, texcoord), vec4(0.0, 0.0, 0.0, 0.0),\n"
-    "        length(cursor - gl_FragCoord) < (fl_radius * camera_scale) ? 0.0 : fl_shadow);\n"
+    "    float dist = length(cursor - gl_FragCoord);\n"
+    "    float inner = fl_radius * camera_scale;\n"
+    "    float outer = inner + fl_feather * camera_scale;\n"
+    "    float alpha = smoothstep(inner, outer, dist);\n"
+    "    color = mix(texture(tex, texcoord), vec4(0.0, 0.0, 0.0, 0.0), alpha * fl_shadow);\n"
     "}\n";
 
 typedef struct {
@@ -337,6 +340,8 @@ static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
                 app->state.flashlight.shadow);
     glUniform1f(glGetUniformLocation(gl->program, "fl_radius"),
                 app->state.flashlight.radius);
+    glUniform1f(glGetUniformLocation(gl->program, "fl_feather"),
+                app->config.feather);
 
     glBindTexture(GL_TEXTURE_2D, gl->texture);
     glBindVertexArray(gl->vao);
