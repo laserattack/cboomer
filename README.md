@@ -10,6 +10,12 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer ap
 - Flashlight effect that follows your cursor
 - Clean, modular C code with single-header libraries
 
+## Differences from original Boomer
+
+- No live window tracking - focused on screenshot viewing only
+- Additional configuration - more camera and flashlight parameters exposed in `config.h`
+- Soft flashlight edges - smooth gradient instead of hard circular cutoff (can be disabled for original behavior)
+
 ## Pre-built Binaries
 
 Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for portable Linux executables. Requires:
