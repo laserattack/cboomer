@@ -19,7 +19,7 @@ typedef struct {
     float fade_speed;              // Speed of flashlight fade in/out
     float max_shadow_opacity;      // Maximum shadow opacity
     float radius_change_threshold; // Minimum magnitude to update flashlight radius (skip micro-changes)
-    float feather;                 // Soft edge size in pixels
+    float feather;                 // Soft edge size as percentage of radius (0.0-0.5, e.g., 0.15 = 15%)
 
     // OpenGL settings
     int texture_filter;  // 0 = pixelated, 1 = smooth
@@ -57,7 +57,7 @@ Config default_config = {
     .fade_speed              = 6.0f,
     .max_shadow_opacity      = 0.8f,
     .radius_change_threshold = 1.0f,
-    .feather                 = 5.0f,
+    .feather                 = 0.10f,
 
     // OpenGL settings
     .texture_filter = 1,
