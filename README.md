@@ -53,11 +53,11 @@ make USE_XSHM=1
 | Scroll wheel                    | Zoom in/out              |
 | <kbd>Ctrl</kbd> + Scroll wheel  | Change flashlight radius |
 
-You can modify the controls in `config.h` and recompile
+You can modify the controls in `src/config.h` and recompile
 
 ## Project Structure
 
-- cboomer.c - Main application logic
-- config.h - Configuration
-- la.h - Linear algebra
-- screenshot.h - Screenshot capture
+- src/cboomer.c - Main application logic
+- src/config.h - Configuration
+- src/la.h - Linear algebra
+- src/screenshot.h - Screenshot capture
