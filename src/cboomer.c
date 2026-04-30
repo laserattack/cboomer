@@ -454,16 +454,14 @@ static void handle_buttonpress(XButtonEvent *be, App *app) {
         app->state.mouse.prev      = app->state.mouse.curr;
         app->state.mouse.drag      = 1;
         app->state.camera.velocity = (Vec2f){ .x = 0, .y = 0 };
-    }
-    else if (be->button == app->config.button_zoom_in) {
+    } else if (be->button == app->config.button_zoom_in) {
         if (ctrl_pressed && app->state.flashlight.enabled) {
             app->state.flashlight.delta_radius -= app->config.initial_delta_radius;
         } else {
             app->state.camera.delta_scale += app->config.scroll_speed;
             app->state.camera.scale_pivot = app->state.mouse.curr;
         }
-    }
-    else if (be->button == app->config.button_zoom_out) {
+    } else if (be->button == app->config.button_zoom_out) {
         if (ctrl_pressed && app->state.flashlight.enabled) {
             app->state.flashlight.delta_radius += app->config.initial_delta_radius;
         } else {
