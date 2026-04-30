@@ -57,10 +57,10 @@ Config default_config = {
     .fade_speed              = 6.0f,
     .max_shadow_opacity      = 0.8f,
     .radius_change_threshold = 1.0f,
-    .feather                 = 0.10f,
+    .feather                 = 0.0f,
 
     // OpenGL settings
-    .texture_filter = 1,
+    .texture_filter = 0,
 
     // Key bindings
     .key_escape     = XK_Escape,
