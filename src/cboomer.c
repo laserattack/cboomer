@@ -59,6 +59,7 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "uniform float     fl_radius;\n"
     "uniform float     camera_scale;\n"
     "uniform float     fl_feather;\n"
+    "uniform float     flash;\n"
     "void main() {\n"
     "    vec4 cursor = vec4(cursor_pos.x, window_size.y - cursor_pos.y, 0.0, 1.0);\n"
     "    float dist = length(cursor - gl_FragCoord);\n"
@@ -67,6 +68,7 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "    float outer = radius_px;\n"
     "    float alpha = smoothstep(inner, outer, dist);\n"
     "    color = mix(texture(tex, texcoord), vec4(0.0, 0.0, 0.0, 0.0), alpha * fl_shadow);\n"
+    "    color.rgb = mix(color.rgb, vec3(1.0), flash);\n"
     "}\n";
 
 typedef struct {
@@ -117,7 +119,8 @@ typedef struct {
     Camera camera;
     Mouse mouse;
     Flashlight flashlight;
-    float dt; // delta time (seconds since last frame)
+    float flash; // current flash intensity, 0..1
+    float dt;    // delta time (seconds since last frame)
     int running;
 } State;
 
@@ -358,7 +361,8 @@ static void opengl_create_geometry(OpenGLContext *gl) {
 }
 
 static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    float bg = 0.1f + (1.0f - 0.1f) * app->state.flash;
+    glClearColor(bg, bg, bg, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(gl->program);
@@ -379,6 +383,8 @@ static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
                 app->state.flashlight.radius);
     glUniform1f(glGetUniformLocation(gl->program, "fl_feather"),
                 app->config.feather);
+    glUniform1f(glGetUniformLocation(gl->program, "flash"),
+                app->state.flash);
 
     glBindTexture(GL_TEXTURE_2D, gl->texture);
     glBindVertexArray(gl->vao);
@@ -399,6 +405,17 @@ static void opengl_cleanup(OpenGLContext *gl) {
 }
 
 // ================ SAVE VIEW
+
+static void expand_tilde(const char *in, char *out, size_t out_size) {
+    if (in[0] == '~' && (in[1] == '/' || in[1] == '\0')) {
+        const char *home = getenv("HOME");
+        if (!home)
+            home = ".";
+        snprintf(out, out_size, "%s%s", home, in + 1);
+    } else {
+        snprintf(out, out_size, "%s", in);
+    }
+}
 
 static void write_be32(unsigned char *p, uint32_t v) {
     p[0] = (v >> 24) & 0xFF;
@@ -425,13 +442,9 @@ static void png_write_chunk(FILE *f, const char *type,
     fwrite(crc_be, 1, 4, f);
 }
 
-static void save_view(int w, int h) {
-    const char *home = getenv("HOME");
-    if (!home)
-        home = ".";
-
+static void save_view(App *app, int w, int h) {
     char path[1024];
-    snprintf(path, sizeof(path), "%s/cboomer_screenshot.png", home);
+    expand_tilde(app->config.screenshot_path, path, sizeof(path));
 
     unsigned char *pixels = malloc((size_t)w * h * 3);
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
@@ -581,7 +594,8 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
     }
 
     if (key == app->config.key_save_screenshot) {
-        save_view(ww, wh);
+        save_view(app, ww, wh);
+        app->state.flash = app->config.flash_intensity;
         return;
     }
 }
@@ -662,6 +676,7 @@ static void init_app(App *app) {
         .shadow = 0.0f,
         .radius = app->config.initial_radius,
         .delta_radius = 0.0f};
+    app->state.flash = 0.0f;
     app->state.dt = 0.0f;
     app->state.running = 1;
 }
@@ -692,6 +707,12 @@ static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
 
         camera_update(app, vec2(ww, wh));
         flashlight_update(app);
+
+        if (app->state.flash > 0.0f) {
+            app->state.flash -= app->state.dt / app->config.flash_duration;
+            if (app->state.flash < 0.0f)
+                app->state.flash = 0.0f;
+        }
 
         opengl_render(gl, app, ww, wh);
 

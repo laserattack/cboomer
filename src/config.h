@@ -26,6 +26,11 @@ typedef struct {
     float radius_change_threshold; // Minimum magnitude to update flashlight radius (skip micro-changes)
     float feather;                 // Soft edge size as percentage of radius (0.0-0.5, e.g., 0.15 = 15%)
 
+    // Screenshot
+    char screenshot_path[256]; // Where to save screenshot
+    float flash_duration;      // Total flash duration in seconds
+    float flash_intensity;     // Peak brightness (0.0 - 1.0)
+
     // OpenGL settings
     int texture_filter; // 0 = pixelated, 1 = smooth
 
@@ -66,6 +71,11 @@ Config default_config = {
     .max_shadow_opacity = 0.8f,
     .radius_change_threshold = 1.0f,
     .feather = 0.0f,
+
+    // Screenshot
+    .screenshot_path = "~/cboomer_screenshot.png",
+    .flash_duration = 0.2f,
+    .flash_intensity = 0.7f,
 
     // OpenGL settings
     .texture_filter = 0,
