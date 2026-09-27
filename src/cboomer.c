@@ -606,8 +606,10 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
     }
 
     if (key == app->config.key_save_screenshot) {
-        save_view(app, ww, wh);
+        if (app->state.flash.intensity > 0.0f)
+            return;
         app->state.flash.intensity = app->config.flash_intensity;
+        save_view(app, ww, wh);
         return;
     }
 }
