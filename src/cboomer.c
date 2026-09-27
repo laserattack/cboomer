@@ -447,30 +447,51 @@ static Vec2f world_position(Camera *camera, Vec2f pos) {
 
 static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m) {
     KeySym key = XLookupKeysym(ke, 0);
+    int ctrl_pressed = (ke->state & app->config.modifier_flashlight) != 0;
 
-    if (key == app->config.key_escape)
+    if (key == app->config.key_escape) {
         app->state.running = 0;
+        return;
+    }
 
-    if (key == app->config.key_flashlight)
+    if (key == app->config.key_flashlight) {
         app->state.flashlight.enabled = !app->state.flashlight.enabled;
+        return;
+    }
 
-    if (key == app->config.key_reset)
-        app->state.camera = (Camera){.scale = 1.0f};
+    if (key == app->config.key_zoom_in && ctrl_pressed && app->state.flashlight.enabled) {
+        app->state.flashlight.delta_radius -= app->config.initial_delta_radius;
+        return;
+    }
+
+    if (key == app->config.key_zoom_out && ctrl_pressed && app->state.flashlight.enabled) {
+        app->state.flashlight.delta_radius += app->config.initial_delta_radius;
+        return;
+    }
 
     if (key == app->config.key_zoom_in) {
         app->state.camera.delta_scale += app->config.scroll_speed;
         app->state.camera.scale_pivot = m->curr;
+        return;
     }
 
     if (key == app->config.key_zoom_out) {
         app->state.camera.delta_scale -= app->config.scroll_speed;
         app->state.camera.scale_pivot = m->curr;
+        return;
     }
 
-    if (key == app->config.key_rotate)
+    if (key == app->config.key_reset) {
+        app->state.camera = (Camera){.scale = 1.0f};
+        return;
+    }
+
+    if (key == app->config.key_rotate) {
         app->state.camera.rotation = fmodf(
             app->state.camera.rotation + app->config.rotation_step,
             2.0f * (float)M_PI);
+        return;
+    }
 }
 
 static void handle_mousemove(XMotionEvent *motion, App *app, int rr) {

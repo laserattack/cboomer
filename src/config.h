@@ -30,13 +30,13 @@ typedef struct {
     int texture_filter; // 0 = pixelated, 1 = smooth
 
     // Key bindings
+    unsigned int modifier_flashlight; // Modifier for flashlight radius change (e.g., ControlMask)
     KeySym key_escape;                // Key to quit the program
     KeySym key_flashlight;            // Key to toggle flashlight
     KeySym key_reset;                 // Key to reset camera
     KeySym key_zoom_in;               // Key to zoom in
     KeySym key_zoom_out;              // Key to zoom out
     KeySym key_rotate;                // Key to rotate screenshot
-    unsigned int modifier_flashlight; // Modifier for flashlight radius change (e.g., ControlMask)
 
     // Mouse bindings
     unsigned int button_drag;     // Mouse button for dragging
@@ -70,12 +70,6 @@ Config default_config = {
     .texture_filter = 0,
 
     // Key bindings
-    .key_escape = XK_Escape,
-    .key_flashlight = XK_2,
-    .key_reset = XK_1,
-    .key_zoom_in = XK_equal,
-    .key_zoom_out = XK_minus,
-    .key_rotate = XK_3,
 
     // Ctrl = ControlMask,
     // Left Alt = Mod1Mask,
@@ -83,6 +77,13 @@ Config default_config = {
     // Ctrl or Shift = ControlMask | ShiftMask,
     // etc.
     .modifier_flashlight = ControlMask,
+
+    .key_escape = XK_Escape,
+    .key_flashlight = XK_2,
+    .key_reset = XK_1,
+    .key_zoom_in = XK_equal,
+    .key_zoom_out = XK_minus,
+    .key_rotate = XK_3,
 
     // Mouse bindings
     .button_drag = Button1,
