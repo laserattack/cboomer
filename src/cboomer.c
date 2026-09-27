@@ -60,14 +60,17 @@ static const char *FRAGMENT_SHADER_SOURCE =
     "uniform float     camera_scale;\n"
     "uniform float     fl_feather;\n"
     "uniform float     flash;\n"
+    "uniform int       mirror;\n"
     "void main() {\n"
+    "    vec2 uv = texcoord;\n"
+    "    if (mirror == 1) uv.x = 1.0 - uv.x;\n"
     "    vec4 cursor = vec4(cursor_pos.x, window_size.y - cursor_pos.y, 0.0, 1.0);\n"
     "    float dist = length(cursor - gl_FragCoord);\n"
     "    float radius_px = fl_radius * camera_scale;\n"
     "    float inner = radius_px * (1.0 - fl_feather);\n"
     "    float outer = radius_px;\n"
     "    float alpha = smoothstep(inner, outer, dist);\n"
-    "    color = mix(texture(tex, texcoord), vec4(0.0, 0.0, 0.0, 0.0), alpha * fl_shadow);\n"
+    "    color = mix(texture(tex, uv), vec4(0.0, 0.0, 0.0, 0.0), alpha * fl_shadow);\n"
     "    color.rgb = mix(color.rgb, vec3(1.0), flash);\n"
     "}\n";
 
@@ -78,6 +81,7 @@ typedef struct {
     float delta_scale;
     Vec2f scale_pivot;
     float rotation;
+    int mirror;
 } Camera;
 
 typedef struct {
@@ -376,6 +380,8 @@ static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
                 app->state.camera.scale);
     glUniform1f(glGetUniformLocation(gl->program, "camera_rotation"),
                 app->state.camera.rotation);
+    glUniform1i(glGetUniformLocation(gl->program, "mirror"),
+                app->state.camera.mirror);
     glUniform2f(glGetUniformLocation(gl->program, "window_size"), ww, wh);
     glUniform2f(glGetUniformLocation(gl->program, "screenshot_size"),
                 gl->screenshot_width, gl->screenshot_height);
@@ -611,6 +617,11 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
 
     if (key == app->config.key_rotate_right) {
         camera_rotate(&app->state.camera, -app->config.rotation_right_step);
+        return;
+    }
+
+    if (key == app->config.key_mirror) {
+        app->state.camera.mirror = !app->state.camera.mirror;
         return;
     }
 

@@ -44,6 +44,7 @@ typedef struct {
     KeySym key_zoom_out;        // Key to zoom out
     KeySym key_rotate_left;     // Key to rotate left
     KeySym key_rotate_right;    // Key to rotate right
+    KeySym key_mirror;          // Key to mirror image horizontally
     KeySym key_save_screenshot; // Key to save current view to ~/cboomer_screenshot.png
 
     // Mouse bindings
@@ -99,6 +100,7 @@ Config default_config = {
     .key_zoom_out = XK_minus,
     .key_rotate_left = XK_3,
     .key_rotate_right = XK_4,
+    .key_mirror = XK_5,
     .key_save_screenshot = XK_s,
 
     // Mouse bindings
