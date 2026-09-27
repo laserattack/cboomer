@@ -3,6 +3,10 @@
 
 #include <X11/keysym.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 typedef struct {
     // Camera settings
     float min_scale;              // Minimum allowed zoom scale
@@ -11,6 +15,7 @@ typedef struct {
     float scale_friction;         // Friction coefficient for zoom inertia
     float velocity_threshold;     // Minimum velocity to apply inertia
     float scale_change_threshold; // Minimum magnitude to update camera zoom (skip micro-changes)
+    float rotation_step;          // Rotation step per key press (radians)
 
     // Flashlight settings
     float initial_radius;          // Starting flashlight radius
@@ -22,14 +27,15 @@ typedef struct {
     float feather;                 // Soft edge size as percentage of radius (0.0-0.5, e.g., 0.15 = 15%)
 
     // OpenGL settings
-    int texture_filter;  // 0 = pixelated, 1 = smooth
+    int texture_filter; // 0 = pixelated, 1 = smooth
 
     // Key bindings
-    KeySym       key_escape;          // Key to quit the program
-    KeySym       key_flashlight;      // Key to toggle flashlight
-    KeySym       key_reset;           // Key to reset camera
-    KeySym       key_zoom_in;         // Key to zoom in
-    KeySym       key_zoom_out;        // Key to zoom out
+    KeySym key_escape;                // Key to quit the program
+    KeySym key_flashlight;            // Key to toggle flashlight
+    KeySym key_reset;                 // Key to reset camera
+    KeySym key_zoom_in;               // Key to zoom in
+    KeySym key_zoom_out;              // Key to zoom out
+    KeySym key_rotate;                // Key to rotate screenshot
     unsigned int modifier_flashlight; // Modifier for flashlight radius change (e.g., ControlMask)
 
     // Mouse bindings
@@ -43,31 +49,33 @@ typedef struct {
 // YOU CAN HACK THIS VALUES
 Config default_config = {
     // Camera settings
-    .min_scale              = 0.5f,
-    .scroll_speed           = 1.5f,
-    .drag_friction          = 6.0f,
-    .scale_friction         = 4.0f,
-    .velocity_threshold     = 15.0f,
+    .min_scale = 0.5f,
+    .scroll_speed = 1.5f,
+    .drag_friction = 6.0f,
+    .scale_friction = 4.0f,
+    .velocity_threshold = 15.0f,
     .scale_change_threshold = 0.5f,
+    .rotation_step = (float)(M_PI / 2.0),
 
     // Flashlight settings
-    .initial_radius          = 200.0f,
-    .initial_delta_radius    = 250.0f,
-    .radius_damping          = 10.0f,
-    .fade_speed              = 6.0f,
-    .max_shadow_opacity      = 0.8f,
+    .initial_radius = 200.0f,
+    .initial_delta_radius = 250.0f,
+    .radius_damping = 10.0f,
+    .fade_speed = 6.0f,
+    .max_shadow_opacity = 0.8f,
     .radius_change_threshold = 1.0f,
-    .feather                 = 0.0f,
+    .feather = 0.0f,
 
     // OpenGL settings
     .texture_filter = 0,
 
     // Key bindings
-    .key_escape     = XK_Escape,
+    .key_escape = XK_Escape,
     .key_flashlight = XK_2,
-    .key_reset      = XK_1,
-    .key_zoom_in    = XK_equal,
-    .key_zoom_out   = XK_minus,
+    .key_reset = XK_1,
+    .key_zoom_in = XK_equal,
+    .key_zoom_out = XK_minus,
+    .key_rotate = XK_3,
 
     // Ctrl = ControlMask,
     // Left Alt = Mod1Mask,
@@ -77,8 +85,8 @@ Config default_config = {
     .modifier_flashlight = ControlMask,
 
     // Mouse bindings
-    .button_drag     = Button1,
-    .button_zoom_in  = Button4,
+    .button_drag = Button1,
+    .button_zoom_in = Button4,
     .button_zoom_out = Button5,
 };
 

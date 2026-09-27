@@ -9,14 +9,14 @@
 #endif
 
 typedef struct {
-    XImage          *image;
+    XImage *image;
 #ifdef USE_XSHM
     XShmSegmentInfo *shminfo;
 #endif
 } Screenshot;
 
 Screenshot *new_screenshot(Display *display, Window window);
-void       destroy_screenshot(Display *display, Screenshot *screenshot);
+void destroy_screenshot(Display *display, Screenshot *screenshot);
 
 // TODO(20260315T135543): Maybe add error checking
 
@@ -49,23 +49,21 @@ Screenshot *new_screenshot(Display *d, Window w) {
         NULL,
         result->shminfo,
         attributes.width,
-        attributes.height
-    );
+        attributes.height);
 
     result->shminfo->shmid = shmget(
         IPC_PRIVATE,
         result->image->bytes_per_line * result->image->height,
-        IPC_CREAT | 0777
-    );
+        IPC_CREAT | 0777);
 
-    result->shminfo->shmaddr  = (char*)shmat(result->shminfo->shmid, 0, 0);
-    result->image->data       = result->shminfo->shmaddr;
+    result->shminfo->shmaddr = (char *)shmat(result->shminfo->shmid, 0, 0);
+    result->image->data = result->shminfo->shmaddr;
     result->shminfo->readOnly = False;
 
     XShmAttach(d, result->shminfo);
 
     XShmGetImage(d, w, result->image, 0, 0, AllPlanes);
-#else // USE_XSHM
+#else  // USE_XSHM
     result->image = XGetImage(d, w, 0, 0,
                               attributes.width, attributes.height,
                               AllPlanes, ZPixmap);
@@ -75,7 +73,8 @@ Screenshot *new_screenshot(Display *d, Window w) {
 }
 
 void destroy_screenshot(Display *d, Screenshot *s) {
-    if (!s) return;
+    if (!s)
+        return;
 
 #ifdef USE_XSHM
     XSync(d, False);
