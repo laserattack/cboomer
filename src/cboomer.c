@@ -116,11 +116,15 @@ typedef struct {
 } OpenGLContext;
 
 typedef struct {
+    float intensity; // current flash intensity, 0..1
+} Flash;
+
+typedef struct {
     Camera camera;
     Mouse mouse;
     Flashlight flashlight;
-    float flash; // current flash intensity, 0..1
-    float dt;    // delta time (seconds since last frame)
+    Flash flash;
+    float dt; // delta time (seconds since last frame)
     int running;
 } State;
 
@@ -361,7 +365,7 @@ static void opengl_create_geometry(OpenGLContext *gl) {
 }
 
 static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
-    float bg = 0.1f + (1.0f - 0.1f) * app->state.flash;
+    float bg = 0.1f + (1.0f - 0.1f) * app->state.flash.intensity;
     glClearColor(bg, bg, bg, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -384,7 +388,7 @@ static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
     glUniform1f(glGetUniformLocation(gl->program, "fl_feather"),
                 app->config.feather);
     glUniform1f(glGetUniformLocation(gl->program, "flash"),
-                app->state.flash);
+                app->state.flash.intensity);
 
     glBindTexture(GL_TEXTURE_2D, gl->texture);
     glBindVertexArray(gl->vao);
@@ -539,6 +543,14 @@ static void flashlight_update(App *app) {
     }
 }
 
+static void flash_update(App *app) {
+    if (app->state.flash.intensity > 0.0f) {
+        app->state.flash.intensity -= app->state.dt / app->config.flash_duration;
+        if (app->state.flash.intensity < 0.0f)
+            app->state.flash.intensity = 0.0f;
+    }
+}
+
 static Vec2f world_position(Camera *camera, Vec2f pos) {
     return vec2_div(pos, camera->scale);
 }
@@ -595,7 +607,7 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
 
     if (key == app->config.key_save_screenshot) {
         save_view(app, ww, wh);
-        app->state.flash = app->config.flash_intensity;
+        app->state.flash.intensity = app->config.flash_intensity;
         return;
     }
 }
@@ -676,7 +688,7 @@ static void init_app(App *app) {
         .shadow = 0.0f,
         .radius = app->config.initial_radius,
         .delta_radius = 0.0f};
-    app->state.flash = 0.0f;
+    app->state.flash.intensity = 0.0f;
     app->state.dt = 0.0f;
     app->state.running = 1;
 }
@@ -707,12 +719,7 @@ static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
 
         camera_update(app, vec2(ww, wh));
         flashlight_update(app);
-
-        if (app->state.flash > 0.0f) {
-            app->state.flash -= app->state.dt / app->config.flash_duration;
-            if (app->state.flash < 0.0f)
-                app->state.flash = 0.0f;
-        }
+        flash_update(app);
 
         opengl_render(gl, app, ww, wh);
 
