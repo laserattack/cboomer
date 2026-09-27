@@ -397,6 +397,37 @@ static void opengl_cleanup(OpenGLContext *gl) {
         glDeleteTextures(1, &gl->texture);
 }
 
+static void save_view_to_ppm(int w, int h) {
+    const char *home = getenv("HOME");
+    if (!home)
+        home = ".";
+
+    char path[1024];
+    snprintf(path, sizeof(path), "%s/cboomer_screenshot.ppm", home);
+
+    unsigned char *pixels = malloc((size_t)w * h * 3);
+
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+    FILE *f = fopen(path, "wb");
+    if (!f) {
+        fprintf(stderr, "Failed to open %s for writing\n", path);
+        free(pixels);
+        return;
+    }
+
+    fprintf(f, "P6\n%d %d\n255\n", w, h);
+    size_t row_bytes = (size_t)w * 3;
+    /* OpenGL origin is bottom-left, PPM is top-left -> flip rows */
+    for (int y = h - 1; y >= 0; y--) {
+        fwrite(pixels + (size_t)y * row_bytes, 1, row_bytes, f);
+    }
+
+    fclose(f);
+    free(pixels);
+    printf("Saved view to %s\n", path);
+}
+
 // ================ MAIN LOGIC
 
 static void camera_update(App *app, Vec2f ws) {
@@ -445,7 +476,7 @@ static Vec2f world_position(Camera *camera, Vec2f pos) {
 
 // ================ HANDLERS
 
-static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m) {
+static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
     KeySym key = XLookupKeysym(ke, 0);
     int ctrl_pressed = (ke->state & app->config.modifier_flashlight) != 0;
 
@@ -490,6 +521,11 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m) {
         app->state.camera.rotation = fmodf(
             app->state.camera.rotation + app->config.rotation_step,
             2.0f * (float)M_PI);
+        return;
+    }
+
+    if (key == app->config.key_save_screenshot) {
+        save_view_to_ppm(ww, wh);
         return;
     }
 }
@@ -537,14 +573,14 @@ static void handle_buttonrelease(XButtonEvent *be, App *app) {
     }
 }
 
-static void process_events(X11Context *x11, App *app) {
+static void process_events(X11Context *x11, App *app, int ww, int wh) {
     XEvent ev;
     while (XPending(x11->display)) {
         XNextEvent(x11->display, &ev);
 
         switch (ev.type) {
         case KeyPress:
-            handle_keypress(&ev.xkey, app, &app->state.mouse);
+            handle_keypress(&ev.xkey, app, &app->state.mouse, ww, wh);
             break;
         case MotionNotify:
             handle_mousemove(&ev.xmotion, app, x11->refresh_rate);
@@ -596,7 +632,7 @@ static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
         x11_get_window_size(x11, &ww, &wh);
         glViewport(0, 0, ww, wh);
 
-        process_events(x11, app);
+        process_events(x11, app, ww, wh);
 
         camera_update(app, vec2(ww, wh));
         flashlight_update(app);

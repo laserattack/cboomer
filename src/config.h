@@ -37,6 +37,7 @@ typedef struct {
     KeySym key_zoom_in;               // Key to zoom in
     KeySym key_zoom_out;              // Key to zoom out
     KeySym key_rotate;                // Key to rotate screenshot
+    KeySym key_save_screenshot;       // Key to save current view to ~/cboomer_screenshot.ppm
 
     // Mouse bindings
     unsigned int button_drag;     // Mouse button for dragging
@@ -84,6 +85,7 @@ Config default_config = {
     .key_zoom_in = XK_equal,
     .key_zoom_out = XK_minus,
     .key_rotate = XK_3,
+    .key_save_screenshot = XK_s,
 
     // Mouse bindings
     .button_drag = Button1,

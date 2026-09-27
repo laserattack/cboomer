@@ -50,18 +50,19 @@ make USE_XSHM=1
 
 ## Default Controls
 
-| Control                                        | Action                          |
-|------------------------------------------------|---------------------------------|
-| <kbd>Esc</kbd>                                 | Quit                            |
-| <kbd>1</kbd>                                   | Reset camera                    |
-| <kbd>2</kbd>                                   | Toggle flashlight               |
-| <kbd>3</kbd>                                   | Rotate screenshot 90° clockwise |
-| <kbd>=</kbd>                                   | Zoom in                         |
-| <kbd>-</kbd>                                   | Zoom out                        |
-| <kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd>  | Change flashlight radius        |
-| Drag with left mouse                           | Pan the image                   |
-| Scroll wheel                                   | Zoom in/out                     |
-| <kbd>Ctrl</kbd> + Scroll wheel                 | Change flashlight radius        |
+| Control                                        | Action                                          |
+|------------------------------------------------|-------------------------------------------------|
+| <kbd>Esc</kbd>                                 | Quit                                            |
+| <kbd>1</kbd>                                   | Reset camera                                    |
+| <kbd>2</kbd>                                   | Toggle flashlight                               |
+| <kbd>3</kbd>                                   | Rotate screenshot 90° clockwise                 |
+| <kbd>=</kbd>                                   | Zoom in                                         |
+| <kbd>-</kbd>                                   | Zoom out                                        |
+| <kbd>s</kbd>                                   | Save current view to `~/cboomer_screenshot.ppm` |
+| <kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd>  | Change flashlight radius                        |
+| Drag with left mouse                           | Pan the image                                   |
+| Scroll wheel                                   | Zoom in/out                                     |
+| <kbd>Ctrl</kbd> + Scroll wheel                 | Change flashlight radius                        |
 
 You can modify the controls in `src/config.h` and recompile
 
