@@ -14,7 +14,7 @@ A C port of [Boomer](https://github.com/tsoding/boomer) by Tsoding - a zoomer ap
 
 - No live window tracking - focused on screenshot viewing only
 - Additional configuration - more camera and flashlight parameters exposed in `config.h`
-- Built-in screenshot rotation (both directions, keyboard and mouse)
+- Built-in screenshot rotation (both directions)
 - Screenshot export to a configurable path
 - Soft flashlight edges - smooth gradient instead of hard circular cutoff (you can enable it in the `config.h`)
 - Configurable texture filtering - switch between pixelated and smooth (check `config.h`)
