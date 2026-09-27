@@ -15,8 +15,8 @@ typedef struct {
     float scale_friction;         // Friction coefficient for zoom inertia
     float velocity_threshold;     // Minimum velocity to apply inertia
     float scale_change_threshold; // Minimum magnitude to update camera zoom (skip micro-changes)
-    float rotation_left_step;     //
-    float rotation_right_step;    //
+    float rotation_left_step;     // Rotation step per left key press (radians)
+    float rotation_right_step;    // Rotation step per right key press (radians)
 
     // Flashlight settings
     float initial_radius;          // Starting flashlight radius
@@ -44,8 +44,8 @@ typedef struct {
     KeySym key_zoom_out;        // Key to zoom out
     KeySym key_rotate_left;     // Key to rotate left
     KeySym key_rotate_right;    // Key to rotate right
-    KeySym key_mirror;          // Key to mirror image horizontally
-    KeySym key_save_screenshot; // Key to save current view to ~/cboomer_screenshot.png
+    KeySym key_mirror;          // Key to mirror screenshot horizontally
+    KeySym key_save_screenshot; // Key to save current view
 
     // Mouse bindings
     unsigned int button_drag;     // Mouse button for dragging
