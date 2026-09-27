@@ -66,7 +66,7 @@ You can modify the controls in `src/config.h` and recompile
 
 ## Project Structure
 
-- src/cboomer.c - Main application logic
-- src/config.h - Configuration
-- src/la.h - Linear algebra
-- src/screenshot.h - Screenshot capture
+- `src/cboomer.c` - Main application logic
+- `src/config.h` - Configuration
+- `src/la.h` - Linear algebra
+- `src/screenshot.h` - Screenshot capture
