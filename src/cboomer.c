@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 #define SCREENSHOT_IMPL
 #include "screenshot.h"
@@ -397,16 +398,42 @@ static void opengl_cleanup(OpenGLContext *gl) {
         glDeleteTextures(1, &gl->texture);
 }
 
-static void save_view_to_ppm(int w, int h) {
+// ================ SAVE VIEW
+
+static void write_be32(unsigned char *p, uint32_t v) {
+    p[0] = (v >> 24) & 0xFF;
+    p[1] = (v >> 16) & 0xFF;
+    p[2] = (v >> 8) & 0xFF;
+    p[3] = v & 0xFF;
+}
+
+static void png_write_chunk(FILE *f, const char *type,
+                            const unsigned char *data, size_t len) {
+    unsigned char hdr[8];
+    write_be32(hdr, (uint32_t)len);
+    memcpy(hdr + 4, type, 4);
+    fwrite(hdr, 1, 8, f);
+    if (len > 0)
+        fwrite(data, 1, len, f);
+
+    uint32_t crc = crc32(0, (const unsigned char *)type, 4);
+    if (len > 0)
+        crc = crc32(crc, data, len);
+
+    unsigned char crc_be[4];
+    write_be32(crc_be, crc);
+    fwrite(crc_be, 1, 4, f);
+}
+
+static void save_view(int w, int h) {
     const char *home = getenv("HOME");
     if (!home)
         home = ".";
 
     char path[1024];
-    snprintf(path, sizeof(path), "%s/cboomer_screenshot.ppm", home);
+    snprintf(path, sizeof(path), "%s/cboomer_screenshot.png", home);
 
     unsigned char *pixels = malloc((size_t)w * h * 3);
-
     glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
     FILE *f = fopen(path, "wb");
@@ -416,15 +443,44 @@ static void save_view_to_ppm(int w, int h) {
         return;
     }
 
-    fprintf(f, "P6\n%d %d\n255\n", w, h);
+    static const unsigned char sig[8] = {0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'};
+    fwrite(sig, 1, 8, f);
+
+    /* IHDR */
+    unsigned char ihdr[13];
+    write_be32(ihdr, (uint32_t)w);
+    write_be32(ihdr + 4, (uint32_t)h);
+    ihdr[8] = 8;  /* bit depth */
+    ihdr[9] = 2;  /* color type: truecolor RGB */
+    ihdr[10] = 0; /* compression */
+    ihdr[11] = 0; /* filter */
+    ihdr[12] = 0; /* interlace */
+    png_write_chunk(f, "IHDR", ihdr, 13);
+
+    /* Build raw scanlines (filter byte 0 + RGB row), flip vertically. */
     size_t row_bytes = (size_t)w * 3;
-    /* OpenGL origin is bottom-left, PPM is top-left -> flip rows */
-    for (int y = h - 1; y >= 0; y--) {
-        fwrite(pixels + (size_t)y * row_bytes, 1, row_bytes, f);
+    size_t raw_size = (row_bytes + 1) * (size_t)h;
+    unsigned char *raw = malloc(raw_size);
+    for (int y = 0; y < h; y++) {
+        int src_y = h - 1 - y;
+        raw[y * (row_bytes + 1)] = 0;
+        memcpy(raw + y * (row_bytes + 1) + 1,
+               pixels + (size_t)src_y * row_bytes,
+               row_bytes);
     }
 
+    uLongf compressed_size = compressBound((uLong)raw_size);
+    unsigned char *compressed = malloc(compressed_size);
+    compress(compressed, &compressed_size, raw, (uLong)raw_size);
+    free(raw);
+
+    png_write_chunk(f, "IDAT", compressed, (size_t)compressed_size);
+    free(compressed);
+
+    png_write_chunk(f, "IEND", NULL, 0);
     fclose(f);
     free(pixels);
+
     printf("Saved view to %s\n", path);
 }
 
@@ -525,7 +581,7 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
     }
 
     if (key == app->config.key_save_screenshot) {
-        save_view_to_ppm(ww, wh);
+        save_view(ww, wh);
         return;
     }
 }

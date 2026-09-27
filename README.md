@@ -33,6 +33,7 @@ Check the [Releases](https://github.com/laserattack/cboomer/releases/) page for 
 - X11 development libraries (libX11, libXext, libXrandr)
 - OpenGL development libraries (libGL, libGLX)
 - GLEW (OpenGL Extension Wrangler)
+- zlib (for PNG export)
 
 ### Build and run
 
@@ -58,7 +59,7 @@ make USE_XSHM=1
 | <kbd>3</kbd>                                   | Rotate screenshot 90° clockwise                 |
 | <kbd>=</kbd>                                   | Zoom in                                         |
 | <kbd>-</kbd>                                   | Zoom out                                        |
-| <kbd>s</kbd>                                   | Save current view to `~/cboomer_screenshot.ppm` |
+| <kbd>s</kbd>                                   | Save current view to `~/cboomer_screenshot.png` |
 | <kbd>Ctrl</kbd> + <kbd>=</kbd> / <kbd>-</kbd>  | Change flashlight radius                        |
 | Drag with left mouse                           | Pan the image                                   |
 | Scroll wheel                                   | Zoom in/out                                     |

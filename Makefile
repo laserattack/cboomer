@@ -1,6 +1,6 @@
 CC = cc
 CFLAGS = -Wall -Wextra -O2 -std=c99
-LDFLAGS = -lX11 -lGL -lXext -lXrandr -lGLEW -lm
+LDFLAGS = -lX11 -lGL -lXext -lXrandr -lGLEW -lm -lz
 TARGET = cboomer
 
 SRC_DIR = src

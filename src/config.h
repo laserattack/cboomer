@@ -37,7 +37,7 @@ typedef struct {
     KeySym key_zoom_in;               // Key to zoom in
     KeySym key_zoom_out;              // Key to zoom out
     KeySym key_rotate;                // Key to rotate screenshot
-    KeySym key_save_screenshot;       // Key to save current view to ~/cboomer_screenshot.ppm
+    KeySym key_save_screenshot;       // Key to save current view to ~/cboomer_screenshot.png
 
     // Mouse bindings
     unsigned int button_drag;     // Mouse button for dragging
