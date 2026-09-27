@@ -74,8 +74,8 @@ Config default_config = {
 
     // Screenshot
     .screenshot_path = "~/cboomer_screenshot.png",
-    .flash_duration = 0.2f,
-    .flash_intensity = 0.7f,
+    .flash_duration = 0.5f,
+    .flash_intensity = 0.5f,
 
     // OpenGL settings
     .texture_filter = 0,
