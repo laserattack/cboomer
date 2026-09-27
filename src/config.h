@@ -15,7 +15,8 @@ typedef struct {
     float scale_friction;         // Friction coefficient for zoom inertia
     float velocity_threshold;     // Minimum velocity to apply inertia
     float scale_change_threshold; // Minimum magnitude to update camera zoom (skip micro-changes)
-    float rotation_step;          // Rotation step per key press (radians)
+    float rotation_left_step;     //
+    float rotation_right_step;    //
 
     // Flashlight settings
     float initial_radius;          // Starting flashlight radius
@@ -35,14 +36,15 @@ typedef struct {
     int texture_filter; // 0 = pixelated, 1 = smooth
 
     // Key bindings
-    unsigned int modifier_flashlight; // Modifier for flashlight radius change (e.g., ControlMask)
-    KeySym key_escape;                // Key to quit the program
-    KeySym key_flashlight;            // Key to toggle flashlight
-    KeySym key_reset;                 // Key to reset camera
-    KeySym key_zoom_in;               // Key to zoom in
-    KeySym key_zoom_out;              // Key to zoom out
-    KeySym key_rotate;                // Key to rotate screenshot
-    KeySym key_save_screenshot;       // Key to save current view to ~/cboomer_screenshot.png
+    unsigned int modifier;      // Modifier for flashlight radius change (e.g., ControlMask)
+    KeySym key_escape;          // Key to quit the program
+    KeySym key_flashlight;      // Key to toggle flashlight
+    KeySym key_reset;           // Key to reset camera
+    KeySym key_zoom_in;         // Key to zoom in
+    KeySym key_zoom_out;        // Key to zoom out
+    KeySym key_rotate_left;     // Key to rotate left
+    KeySym key_rotate_right;    // Key to rotate right
+    KeySym key_save_screenshot; // Key to save current view to ~/cboomer_screenshot.png
 
     // Mouse bindings
     unsigned int button_drag;     // Mouse button for dragging
@@ -61,7 +63,8 @@ Config default_config = {
     .scale_friction = 4.0f,
     .velocity_threshold = 15.0f,
     .scale_change_threshold = 0.5f,
-    .rotation_step = (float)(M_PI / 2.0),
+    .rotation_left_step = (float)(M_PI / 10.0),
+    .rotation_right_step = (float)(M_PI / 10.0),
 
     // Flashlight settings
     .initial_radius = 200.0f,
@@ -87,14 +90,15 @@ Config default_config = {
     // Shift = ShiftMask,
     // Ctrl or Shift = ControlMask | ShiftMask,
     // etc.
-    .modifier_flashlight = ControlMask,
+    .modifier = ControlMask,
 
     .key_escape = XK_Escape,
     .key_flashlight = XK_2,
     .key_reset = XK_1,
     .key_zoom_in = XK_equal,
     .key_zoom_out = XK_minus,
-    .key_rotate = XK_3,
+    .key_rotate_left = XK_3,
+    .key_rotate_right = XK_4,
     .key_save_screenshot = XK_s,
 
     // Mouse bindings

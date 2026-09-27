@@ -551,6 +551,12 @@ static void flash_update(App *app) {
     }
 }
 
+static void camera_rotate(Camera *camera, float step) {
+    camera->rotation = fmodf(
+        camera->rotation + step,
+        2.0f * (float)M_PI);
+}
+
 static Vec2f world_position(Camera *camera, Vec2f pos) {
     return vec2_div(pos, camera->scale);
 }
@@ -559,7 +565,7 @@ static Vec2f world_position(Camera *camera, Vec2f pos) {
 
 static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
     KeySym key = XLookupKeysym(ke, 0);
-    int ctrl_pressed = (ke->state & app->config.modifier_flashlight) != 0;
+    int ctrl_pressed = (ke->state & app->config.modifier) != 0;
 
     if (key == app->config.key_escape) {
         app->state.running = 0;
@@ -598,10 +604,13 @@ static void handle_keypress(XKeyEvent *ke, App *app, Mouse *m, int ww, int wh) {
         return;
     }
 
-    if (key == app->config.key_rotate) {
-        app->state.camera.rotation = fmodf(
-            app->state.camera.rotation + app->config.rotation_step,
-            2.0f * (float)M_PI);
+    if (key == app->config.key_rotate_left) {
+        camera_rotate(&app->state.camera, app->config.rotation_left_step);
+        return;
+    }
+
+    if (key == app->config.key_rotate_right) {
+        camera_rotate(&app->state.camera, -app->config.rotation_right_step);
         return;
     }
 
@@ -628,7 +637,7 @@ static void handle_mousemove(XMotionEvent *motion, App *app, int rr) {
 }
 
 static void handle_buttonpress(XButtonEvent *be, App *app) {
-    int ctrl_pressed = (be->state & app->config.modifier_flashlight) != 0;
+    int ctrl_pressed = (be->state & app->config.modifier) != 0;
 
     if (be->button == app->config.button_drag) {
         app->state.mouse.prev = app->state.mouse.curr;
