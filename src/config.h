@@ -34,6 +34,9 @@ typedef struct {
 
     // OpenGL settings
     int texture_filter; // 0 = pixelated, 1 = smooth
+    float bg_r;         // Background color red   (0.0 - 1.0)
+    float bg_g;         // Background color green (0.0 - 1.0)
+    float bg_b;         // Background color blue  (0.0 - 1.0)
 
     // Key bindings
     unsigned int modifier;      // Modifier for flashlight radius change (e.g., ControlMask)
@@ -83,6 +86,9 @@ Config default_config = {
 
     // OpenGL settings
     .texture_filter = 0,
+    .bg_r = 0.1f,
+    .bg_g = 0.1f,
+    .bg_b = 0.1f,
 
     // Key bindings
 

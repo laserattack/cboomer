@@ -369,8 +369,11 @@ static void opengl_create_geometry(OpenGLContext *gl) {
 }
 
 static void opengl_render(OpenGLContext *gl, App *app, int ww, int wh) {
-    float bg = 0.1f + (1.0f - 0.1f) * app->state.flash.intensity;
-    glClearColor(bg, bg, bg, 1.0f);
+    float flash = app->state.flash.intensity;
+    float br = app->config.bg_r + (1.0f - app->config.bg_r) * flash;
+    float bg = app->config.bg_g + (1.0f - app->config.bg_g) * flash;
+    float bb = app->config.bg_b + (1.0f - app->config.bg_b) * flash;
+    glClearColor(br, bg, bb, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(gl->program);
