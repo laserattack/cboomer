@@ -85,7 +85,7 @@ Config default_config = {
     .flash_intensity = 0.5f,
 
     // OpenGL settings
-    .texture_filter = 0,
+    .texture_filter = 1,
     .bg_r = 0.1f,
     .bg_g = 0.1f,
     .bg_b = 0.1f,
